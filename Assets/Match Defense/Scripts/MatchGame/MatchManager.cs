@@ -1,17 +1,28 @@
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 
 public class MatchManager : MonoBehaviour
 {
+    [Header("Camera Setup")]
+    public Camera uiCamera;
+
+    [Header("Board Settings")]
     public int widthCount = 6;
     public int heightCount = 6;
-    public Vector2 boardAreaSize = new Vector2(6f, 6f);
+
+    [Range(0.5f, 1f)]
+    public float boardWidthPercent = 0.95f;
     public Vector2 spacing = new Vector2(0.1f, 0.1f);
     public GameObject blockPrefab;
     public Sprite[] blockSprites;
-    public MatchStore matchStore;
 
+    [Header("Store Connection")]
+    public MatchStore matchStore;
+    public float storeMargin = 0.3f;
+
+    private Vector2 boardAreaSize;
     private MatchBlock[,] board;
     private MatchBlock selectedBlock;
     private bool isAnimating = false;
@@ -20,7 +31,8 @@ public class MatchManager : MonoBehaviour
 
     private void Start()
     {
-        CalculateBoardData();
+        InitBoardData();
+
         board = new MatchBlock[widthCount, heightCount];
         for (int x = 0; x < widthCount; x++)
         {
@@ -32,10 +44,90 @@ public class MatchManager : MonoBehaviour
         CheckBoardState();
     }
 
-    private void CalculateBoardData()
+    private void Update()
+    {
+        if (isAnimating)
+            return;
+
+        var pointer = UnityEngine.InputSystem.Pointer.current;
+        if (pointer == null)
+            return;
+
+        if (pointer.press.wasPressedThisFrame)
+        {
+            ProcessPointerDown(pointer.position.ReadValue());
+        }
+        else if (pointer.press.isPressed && selectedBlock != null)
+        {
+            ProcessPointerMove(pointer.position.ReadValue());
+        }
+        else if (pointer.press.wasReleasedThisFrame)
+        {
+            ReleaseBlock();
+        }
+    }
+
+    private void ProcessPointerDown(Vector2 screenPos)
+    {
+        if (uiCamera == null)
+            return;
+
+        Vector3 worldPos = uiCamera.ScreenToWorldPoint(
+            new Vector3(screenPos.x, screenPos.y, Mathf.Abs(uiCamera.transform.position.z))
+        );
+
+        RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero);
+        if (hit.collider != null)
+        {
+            MatchBlock block = hit.collider.GetComponent<MatchBlock>();
+            if (block != null)
+            {
+                SelectBlock(block);
+            }
+        }
+    }
+
+    private void ProcessPointerMove(Vector2 screenPos)
+    {
+        if (uiCamera == null || selectedBlock == null)
+            return;
+
+        Vector3 worldPos = uiCamera.ScreenToWorldPoint(
+            new Vector3(screenPos.x, screenPos.y, Mathf.Abs(uiCamera.transform.position.z))
+        );
+
+        RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero);
+        if (hit.collider != null)
+        {
+            MatchBlock block = hit.collider.GetComponent<MatchBlock>();
+
+            if (block != null && block != selectedBlock)
+            {
+                HoverBlock(block);
+            }
+        }
+    }
+
+    private void InitBoardData()
     {
         float totalSpacingX = Mathf.Max(0, widthCount - 1) * spacing.x;
         float totalSpacingY = Mathf.Max(0, heightCount - 1) * spacing.y;
+
+        if (uiCamera != null)
+        {
+            float camWorldWidth = uiCamera.orthographicSize * 2f * uiCamera.aspect;
+            boardAreaSize.x = camWorldWidth * boardWidthPercent;
+
+            float bSizeX = (boardAreaSize.x - totalSpacingX) / widthCount;
+            boardAreaSize.y = (bSizeX * heightCount) + totalSpacingY;
+        }
+
+        if (matchStore != null && uiCamera != null)
+        {
+            float storeBottomY = matchStore.GetStoreBottomWorldY();
+            float newY = storeBottomY - storeMargin - boardAreaSize.y;
+            transform.position = new Vector3(transform.position.x, newY, transform.position.z);
+        }
 
         blockSize = new Vector2(
             (boardAreaSize.x - totalSpacingX) / widthCount,
@@ -44,7 +136,7 @@ public class MatchManager : MonoBehaviour
 
         startPos =
             transform.position
-            - new Vector3(boardAreaSize.x / 2f, boardAreaSize.y / 2f, 0f)
+            - new Vector3(boardAreaSize.x / 2f, 0f, 0f)
             + new Vector3(blockSize.x / 2f, blockSize.y / 2f, 0f);
     }
 
@@ -70,11 +162,18 @@ public class MatchManager : MonoBehaviour
         board[x, y] = matchBlock;
     }
 
+    private Vector3 GetOriginalScale(MatchBlock block)
+    {
+        Vector3 spriteSize = blockSprites[block.TypeIndex].bounds.size;
+        return new Vector3(blockSize.x / spriteSize.x, blockSize.y / spriteSize.y, 1f);
+    }
+
     public void SelectBlock(MatchBlock block)
     {
         if (isAnimating)
             return;
         selectedBlock = block;
+        selectedBlock.transform.DOScale(GetOriginalScale(selectedBlock) * 0.8f, 0.15f);
     }
 
     public void HoverBlock(MatchBlock block)
@@ -84,6 +183,8 @@ public class MatchManager : MonoBehaviour
 
         if (Mathf.Abs(selectedBlock.X - block.X) + Mathf.Abs(selectedBlock.Y - block.Y) == 1)
         {
+            selectedBlock.transform.DOScale(GetOriginalScale(selectedBlock), 0.15f);
+
             StartCoroutine(SwapAndCheck(selectedBlock, block));
             selectedBlock = null;
         }
@@ -93,6 +194,7 @@ public class MatchManager : MonoBehaviour
     {
         if (selectedBlock != null)
         {
+            selectedBlock.transform.DOScale(GetOriginalScale(selectedBlock), 0.15f);
             selectedBlock = null;
         }
     }
@@ -319,7 +421,8 @@ public class MatchManager : MonoBehaviour
     private IEnumerator ShuffleBoard()
     {
         isAnimating = true;
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.5f);
+
         for (int x = 0; x < widthCount; x++)
         {
             for (int y = 0; y < heightCount; y++)
@@ -331,7 +434,9 @@ public class MatchManager : MonoBehaviour
                 }
             }
         }
-        yield return new WaitForSeconds(0.5f);
+
+        yield return new WaitForSeconds(0.3f);
+
         for (int x = 0; x < widthCount; x++)
         {
             for (int y = 0; y < heightCount; y++)
@@ -339,18 +444,25 @@ public class MatchManager : MonoBehaviour
                 SpawnBlock(x, y);
             }
         }
+
         yield return new WaitForSeconds(0.1f);
         CheckBoardState();
     }
 
+#if UNITY_EDITOR
     private void OnDrawGizmos()
     {
+        if (Application.isPlaying)
+            return;
+
+        InitBoardData();
+
         Gizmos.color = Color.green;
-        Gizmos.DrawWireCube(transform.position, new Vector3(boardAreaSize.x, boardAreaSize.y, 0f));
+        Vector3 boardCenter = transform.position + new Vector3(0f, boardAreaSize.y / 2f, 0f);
+        Gizmos.DrawWireCube(boardCenter, new Vector3(boardAreaSize.x, boardAreaSize.y, 0f));
 
         if (widthCount > 0 && heightCount > 0)
         {
-            CalculateBoardData();
             Gizmos.color = new Color(0, 1, 0, 0.3f);
             for (int x = 0; x < widthCount; x++)
             {
@@ -362,4 +474,5 @@ public class MatchManager : MonoBehaviour
             }
         }
     }
+#endif
 }

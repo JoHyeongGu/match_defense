@@ -18,14 +18,30 @@ public class MatchStore : MonoBehaviour
     public List<UnitData> unitList;
     public VisualTreeAsset cardTemplate;
 
+    [Header("Camera Setup")]
+    public Camera uiCamera;
+    public Camera worldCamera;
+
     [Header("Store Settings")]
-    public float fieldMinY = 0f;
     public float storeBottomPosition = 400f;
     public Vector2 cardSize = new Vector2(100f, 140f);
+
+    [Header("3D Summon Settings")]
+    public LayerMask groundLayer;
+    public string groundTag = "Ground";
+
+    [Header("Summon Check & Preview")]
+    public LayerMask unitLayer;
+    public float checkRadius = 0.5f;
+    public float dummyHeight = 0.8f;
 
     private PanelRenderer panelRenderer;
     private GameObject dragDummy;
     private UnitData draggingUnit;
+    private int currentPointerId = -1;
+
+    private bool isValidSpawnPosition = false;
+    private Vector3 validSpawnPoint;
 
     private class CardNode
     {
@@ -106,10 +122,42 @@ public class MatchStore : MonoBehaviour
             node.root.RegisterCallback<PointerDownEvent>(evt => OnPointerDown(evt, node));
             node.root.RegisterCallback<PointerMoveEvent>(evt => OnPointerMove(evt, node));
             node.root.RegisterCallback<PointerUpEvent>(evt => OnPointerUp(evt, node));
+            node.root.RegisterCallback<PointerCancelEvent>(evt => OnPointerCancel(evt, node));
+            node.root.RegisterCallback<PointerCaptureOutEvent>(evt =>
+                OnPointerCaptureOut(evt, node)
+            );
 
             storeContainer.Add(templateInstance);
             cardDict.Add(unit.typeIndex, node);
         }
+    }
+
+    public float GetStoreBottomWorldY()
+    {
+        if (uiCamera == null || uiCamera.pixelHeight <= 0)
+            return transform.position.y;
+
+        float camHeight = uiCamera.pixelHeight;
+        float camWidth = uiCamera.pixelWidth;
+        float uiScale = 1f;
+
+        PanelRenderer pr = GetComponent<PanelRenderer>();
+        if (
+            pr != null
+            && pr.panelSettings != null
+            && pr.panelSettings.scaleMode == PanelScaleMode.ScaleWithScreenSize
+        )
+        {
+            Vector2 refRes = pr.panelSettings.referenceResolution;
+            float match = pr.panelSettings.match;
+            float scaleX = camWidth / refRes.x;
+            float scaleY = camHeight / refRes.y;
+            uiScale = Mathf.Lerp(scaleX, scaleY, match);
+        }
+
+        float scaledBottom = storeBottomPosition * uiScale;
+        float zDepth = Mathf.Abs(uiCamera.transform.position.z);
+        return uiCamera.ScreenToWorldPoint(new Vector3(camWidth / 2f, scaledBottom, zDepth)).y;
     }
 
     public void AddPoints(int typeIndex, int points)
@@ -190,78 +238,190 @@ public class MatchStore : MonoBehaviour
 
     private void OnPointerDown(PointerDownEvent evt, CardNode node)
     {
+        if (dragDummy != null)
+            return;
+
         if (node.cardCount > 0)
         {
+            isValidSpawnPosition = false;
+            currentPointerId = evt.pointerId;
             draggingUnit = node.data;
+
             dragDummy = new GameObject("DragDummy");
+            dragDummy.layer = LayerMask.NameToLayer("2D_Board");
+
             SpriteRenderer sr = dragDummy.AddComponent<SpriteRenderer>();
             sr.sprite = node.data.cardSprite;
             sr.sortingOrder = 100;
-            UpdateDummyPosition(evt.position);
 
+            UpdateDummyPosition();
             node.root.CapturePointer(evt.pointerId);
         }
     }
 
     private void OnPointerMove(PointerMoveEvent evt, CardNode node)
     {
-        if (dragDummy != null)
+        if (dragDummy != null && evt.pointerId == currentPointerId)
         {
-            UpdateDummyPosition(evt.position);
+            UpdateDummyPosition();
         }
     }
 
     private void OnPointerUp(PointerUpEvent evt, CardNode node)
     {
+        if (dragDummy != null && evt.pointerId == currentPointerId)
+        {
+            FinishDrag(node, evt.pointerId, true);
+        }
+    }
+
+    private void OnPointerCancel(PointerCancelEvent evt, CardNode node)
+    {
+        if (dragDummy != null && evt.pointerId == currentPointerId)
+        {
+            FinishDrag(node, evt.pointerId, false);
+        }
+    }
+
+    private void OnPointerCaptureOut(PointerCaptureOutEvent evt, CardNode node)
+    {
+        if (dragDummy != null && evt.pointerId == currentPointerId)
+        {
+            FinishDrag(node, evt.pointerId, true);
+        }
+    }
+
+    private void FinishDrag(CardNode node, int pointerId, bool trySpawn)
+    {
         if (dragDummy != null)
         {
-            Vector3 dropPos = dragDummy.transform.position;
-            Destroy(dragDummy);
-
-            if (dropPos.y >= fieldMinY)
+            if (trySpawn && isValidSpawnPosition)
             {
-                Instantiate(draggingUnit.unitPrefab, dropPos, Quaternion.identity);
+                // 소환될 유닛의 위치
+                Instantiate(draggingUnit.unitPrefab, validSpawnPoint, Quaternion.identity);
                 node.cardCount--;
                 node.countLabel.text = node.cardCount.ToString();
             }
 
-            node.root.ReleasePointer(evt.pointerId);
+            Destroy(dragDummy);
+            dragDummy = null;
             draggingUnit = null;
+            currentPointerId = -1;
+            isValidSpawnPosition = false;
+
+            node.root.ReleasePointer(pointerId);
         }
     }
 
-    private void UpdateDummyPosition(Vector2 screenPos)
+    private void UpdateDummyPosition()
     {
-        Vector2 invertedYPos = new Vector2(screenPos.x, Screen.height - screenPos.y);
-        Vector3 worldPos = Camera.main.ScreenToWorldPoint(invertedYPos);
-        worldPos.z = 0;
+        if (dragDummy == null || uiCamera == null || worldCamera == null)
+            return;
+
+        Vector3 screenPixelPos = UnityEngine.InputSystem.Pointer.current.position.ReadValue();
+
+        if (
+            UnityEngine.InputSystem.Touchscreen.current != null
+            && UnityEngine.InputSystem.Touchscreen.current.touches.Count > 0
+        )
+        {
+            foreach (var touch in UnityEngine.InputSystem.Touchscreen.current.touches)
+            {
+                if (touch.press.isPressed)
+                {
+                    screenPixelPos = touch.position.ReadValue();
+                    break;
+                }
+            }
+        }
+
+        Ray ray = worldCamera.ScreenPointToRay(screenPixelPos);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, 1000f, groundLayer))
+        {
+            if (hit.collider.CompareTag(groundTag))
+            {
+                // 💡 [핵심 1] 겹침 방지: 바닥에서 살짝 위를 중심으로 구(Sphere)를 생성해 유닛이 있는지 검사합니다.
+                Vector3 checkCenter = hit.point + Vector3.up * checkRadius;
+                bool isBlocked = Physics.CheckSphere(checkCenter, checkRadius, unitLayer);
+
+                if (!isBlocked)
+                {
+                    // 비어있음 = 설치 가능
+                    isValidSpawnPosition = true;
+                    validSpawnPoint = hit.point;
+                    dragDummy.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 1f);
+                }
+                else
+                {
+                    // 막혀있음 = 땅 위라도 설치 불가 (빨간색)
+                    isValidSpawnPosition = false;
+                    dragDummy.GetComponent<SpriteRenderer>().color = new Color(1f, 0f, 0f, 0.5f);
+                }
+
+                // 💡 [핵심 2] 땅 뚫림 방지: dummyHeight 만큼 Y축으로 띄워줍니다.
+                dragDummy.transform.position = hit.point + (Vector3.up * dummyHeight);
+                dragDummy.transform.forward = worldCamera.transform.forward;
+                dragDummy.layer = LayerMask.NameToLayer("Default");
+                return;
+            }
+        }
+
+        isValidSpawnPosition = false;
+
+        float defaultZDepth = Mathf.Abs(uiCamera.transform.position.z);
+        Vector3 worldPos = uiCamera.ScreenToWorldPoint(
+            new Vector3(screenPixelPos.x, screenPixelPos.y, defaultZDepth)
+        );
         dragDummy.transform.position = worldPos;
+        dragDummy.transform.forward = uiCamera.transform.forward;
+        dragDummy.GetComponent<SpriteRenderer>().color = new Color(1f, 0f, 0f, 0.5f);
+        dragDummy.layer = LayerMask.NameToLayer("2D_Board");
     }
 
 #if UNITY_EDITOR
+    // (OnDrawGizmos 로직은 이전과 동일하므로 길이상 생략하지 않고 그대로 두시면 됩니다!)
     private void OnDrawGizmos()
     {
-        if (Camera.main == null || !Camera.main.orthographic)
+        if (uiCamera == null || !uiCamera.orthographic)
             return;
-
-        float camHeight = Camera.main.pixelHeight;
-        float camWidth = Camera.main.pixelWidth;
+        float camHeight = uiCamera.pixelHeight;
+        float camWidth = uiCamera.pixelWidth;
         if (camHeight <= 0)
             return;
 
-        float zDepth = Mathf.Abs(Camera.main.transform.position.z);
+        float zDepth = Mathf.Abs(uiCamera.transform.position.z);
+        float uiScale = 1f;
 
-        Vector3 bottomWorld = Camera.main.ScreenToWorldPoint(
-            new Vector3(camWidth / 2f, storeBottomPosition, zDepth)
+        PanelRenderer pr = GetComponent<PanelRenderer>();
+        if (pr != null && pr.panelSettings != null)
+        {
+            if (pr.panelSettings.scaleMode == PanelScaleMode.ScaleWithScreenSize)
+            {
+                Vector2 refRes = pr.panelSettings.referenceResolution;
+                float match = pr.panelSettings.match;
+                float scaleX = camWidth / refRes.x;
+                float scaleY = camHeight / refRes.y;
+                uiScale = Mathf.Lerp(scaleX, scaleY, match);
+            }
+        }
+
+        float scaledBottom = storeBottomPosition * uiScale;
+        float scaledCardWidth = cardSize.x * uiScale;
+        float scaledCardHeight = cardSize.y * uiScale;
+        float scaledMargin = 10f * uiScale;
+
+        Vector3 bottomWorld = uiCamera.ScreenToWorldPoint(
+            new Vector3(camWidth / 2f, scaledBottom, zDepth)
         );
-        Vector3 topWorld = Camera.main.ScreenToWorldPoint(
-            new Vector3(camWidth / 2f, storeBottomPosition + cardSize.y, zDepth)
+        Vector3 topWorld = uiCamera.ScreenToWorldPoint(
+            new Vector3(camWidth / 2f, scaledBottom + scaledCardHeight, zDepth)
         );
-        Vector3 rightWorld = Camera.main.ScreenToWorldPoint(
-            new Vector3(camWidth / 2f + cardSize.x, storeBottomPosition, zDepth)
+        Vector3 rightWorld = uiCamera.ScreenToWorldPoint(
+            new Vector3(camWidth / 2f + scaledCardWidth, scaledBottom, zDepth)
         );
-        Vector3 marginWorld = Camera.main.ScreenToWorldPoint(
-            new Vector3(camWidth / 2f + 10f, storeBottomPosition, zDepth)
+        Vector3 marginWorld = uiCamera.ScreenToWorldPoint(
+            new Vector3(camWidth / 2f + scaledMargin, scaledBottom, zDepth)
         );
 
         float wHeight = topWorld.y - bottomWorld.y;
@@ -272,10 +432,9 @@ public class MatchStore : MonoBehaviour
 
         if (count > 0)
         {
-            Gizmos.color = new Color(1f, 0.8f, 0f, 0.7f); 
+            Gizmos.color = new Color(1f, 0.8f, 0f, 0.7f);
             float totalW = (wWidth + wMargin * 2) * count;
-            float startX =
-                Camera.main.transform.position.x - (totalW / 2f) + (wWidth / 2f) + wMargin;
+            float startX = uiCamera.transform.position.x - (totalW / 2f) + (wWidth / 2f) + wMargin;
             float centerY = bottomWorld.y + (wHeight / 2f);
 
             for (int i = 0; i < count; i++)
@@ -286,26 +445,9 @@ public class MatchStore : MonoBehaviour
         }
 
         Gizmos.color = Color.red;
-        Vector3 lineStart = Camera.main.ScreenToWorldPoint(
-            new Vector3(0, storeBottomPosition, zDepth)
-        );
-        Vector3 lineEnd = Camera.main.ScreenToWorldPoint(
-            new Vector3(camWidth, storeBottomPosition, zDepth)
-        );
+        Vector3 lineStart = uiCamera.ScreenToWorldPoint(new Vector3(0, scaledBottom, zDepth));
+        Vector3 lineEnd = uiCamera.ScreenToWorldPoint(new Vector3(camWidth, scaledBottom, zDepth));
         Gizmos.DrawLine(lineStart, lineEnd);
-
-        Gizmos.color = Color.green;
-        Vector3 fieldMinStart = new Vector3(
-            Camera.main.ScreenToWorldPoint(new Vector3(0, 0, zDepth)).x,
-            fieldMinY,
-            0f
-        );
-        Vector3 fieldMinEnd = new Vector3(
-            Camera.main.ScreenToWorldPoint(new Vector3(camWidth, 0, zDepth)).x,
-            fieldMinY,
-            0f
-        );
-        Gizmos.DrawLine(fieldMinStart, fieldMinEnd);
     }
 #endif
 }

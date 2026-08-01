@@ -15,13 +15,21 @@ namespace MatchDefense.Lobby
         }
         [SerializeField] private List<StageData> stageData = new();
 
-        private void OnEnable() =>
-            GetComponent<PanelRenderer>()?.RegisterUIReloadCallback(OnReloadedCallback);
-        private void OnDisable() =>
-            GetComponent<PanelRenderer>()?.UnregisterUIReloadCallback(OnReloadedCallback);
+        private PanelRenderer panelRenderer;
+
+        private void OnEnable()
+        {
+            panelRenderer = GetComponent<PanelRenderer>();
+            panelRenderer?.RegisterUIReloadCallback(OnReloadedCallback);
+        }
+        private void OnDisable()
+        {
+            panelRenderer?.UnregisterUIReloadCallback(OnReloadedCallback);
+        }
 
         private void OnReloadedCallback(PanelRenderer panelRenderer, VisualElement root, int version)
         {
+            stageData.Reverse();
             ListView listView = root.Q("StageListView") as ListView;
             listView.itemsSource = stageData;
             listView.bindItem = (ele, index) =>

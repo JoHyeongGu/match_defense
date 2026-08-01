@@ -1,48 +1,47 @@
 using UnityEngine;
 
-public class UnitSelector : MonoBehaviour
+namespace MatchDefense.DefenseGame
 {
-    public Camera worldCamera;
-
-    [Header("Selectable Layers")]
-    public LayerMask unitLayer; // 클릭 가능한 유닛 레이어
-    public LayerMask groundLayer; // 클릭 시 포커스 해제할 땅 레이어
-
-    private Unit currentSelectedUnit;
-
-    private void Update()
+    public class UnitSelector : MonoBehaviour
     {
-        var pointer = UnityEngine.InputSystem.Pointer.current;
-        if (pointer == null || !pointer.press.wasPressedThisFrame)
-            return;
+        [Header("<color=yellow>Camera</color>")]
+        [SerializeField] private Camera worldCamera;
 
-        if (worldCamera == null)
-            return;
+        [Header("<color=yellow>Layers</color>")]
+        [SerializeField] private LayerMask unitLayer;
+        [SerializeField] private LayerMask groundLayer;
 
-        Ray ray = worldCamera.ScreenPointToRay(pointer.position.ReadValue());
+        private Unit currentSelectedUnit;
 
-        // 1. 3D 공간에서 유닛을 클릭했는지 검사
-        if (Physics.Raycast(ray, out RaycastHit unitHit, 1000f, unitLayer))
+        private void Update()
         {
-            Unit clickedUnit = unitHit.collider.GetComponent<Unit>();
-            if (clickedUnit != null)
-            {
-                // 기존에 선택된 유닛이 있으면 사거리 표시 끄기
-                if (currentSelectedUnit != null)
-                    currentSelectedUnit.SetRangeVisible(false);
+            var pointer = UnityEngine.InputSystem.Pointer.current;
+            if (pointer == null || !pointer.press.wasPressedThisFrame)
+                return;
 
-                // 새로운 유닛 선택 및 사거리 표시 켜기
-                currentSelectedUnit = clickedUnit;
-                currentSelectedUnit.SetRangeVisible(true);
+            if (worldCamera == null)
+                return;
+
+            Ray ray = worldCamera.ScreenPointToRay(pointer.position.ReadValue());
+
+            if (Physics.Raycast(ray, out RaycastHit unitHit, 1000f, unitLayer))
+            {
+                Unit clickedUnit = unitHit.collider.GetComponent<Unit>();
+                if (clickedUnit != null)
+                {
+                    if (currentSelectedUnit != null)
+                        currentSelectedUnit.SetVisibleAtkRange(false);
+                    currentSelectedUnit = clickedUnit;
+                    currentSelectedUnit.SetVisibleAtkRange(true);
+                }
             }
-        }
-        // 2. 유닛이 아닌 땅(Ground)을 클릭했다면 포커스 해제
-        else if (Physics.Raycast(ray, out RaycastHit groundHit, 1000f, groundLayer))
-        {
-            if (currentSelectedUnit != null)
+            else if (Physics.Raycast(ray, out RaycastHit groundHit, 1000f, groundLayer))
             {
-                currentSelectedUnit.SetRangeVisible(false);
-                currentSelectedUnit = null;
+                if (currentSelectedUnit != null)
+                {
+                    currentSelectedUnit.SetVisibleAtkRange(false);
+                    currentSelectedUnit = null;
+                }
             }
         }
     }

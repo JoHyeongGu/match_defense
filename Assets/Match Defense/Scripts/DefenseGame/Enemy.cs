@@ -1,78 +1,87 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Enemy : MonoBehaviour
+namespace MatchDefense.DefenseGame
 {
-    [Header("Stats")]
-    public float maxHP = 50f;
-    private float currentHP;
-
-    [Header("Movement")]
-    public float moveSpeed = 3f;
-
-    private List<Transform> waypoints;
-    private int currentWaypointIndex = 0;
-    private bool isPathReady = false;
-
-    private void Start()
+    public class Enemy : MonoBehaviour
     {
-        currentHP = maxHP;
-    }
+        [Header("<color=yellow>Stats</color>")]
+        [SerializeField] private float maxHP = 50f;
+        private float currentHP;
 
-    public void SetupPath(List<Transform> path)
-    {
-        waypoints = path;
-        if (waypoints != null && waypoints.Count > 0)
+        [Header("<color=yellow>Movement</color>")]
+        [SerializeField] private float moveSpeed = 3f;
+
+        private List<Transform> path;
+        private bool isPathReady = false;
+        private int currentPathIndex = 0;
+
+
+        #region Unity Methods
+
+        private void Start() => currentHP = maxHP;
+        private void Update() => Move();
+
+        #endregion
+
+
+        #region Public
+
+        public void InitPath(List<Transform> _path)
         {
-            isPathReady = true;
-            transform.LookAt(waypoints[currentWaypointIndex]);
-        }
-    }
-
-    private void Update()
-    {
-        if (!isPathReady)
-            return;
-
-        Transform target = waypoints[currentWaypointIndex];
-        transform.position = Vector3.MoveTowards(
-            transform.position,
-            target.position,
-            moveSpeed * Time.deltaTime
-        );
-
-        if (Vector3.Distance(transform.position, target.position) <= 0.01f)
-        {
-            currentWaypointIndex++;
-            if (currentWaypointIndex >= waypoints.Count)
+            path = _path;
+            if (path != null && path.Count > 0)
             {
-                ReachDestination();
-            }
-            else
-            {
-                transform.LookAt(waypoints[currentWaypointIndex]);
+                isPathReady = true;
+                transform.LookAt(path[currentPathIndex]);
             }
         }
-    }
 
-    private void ReachDestination()
-    {
-        // TODO: 본진 체력 깎는 로직
-        Destroy(gameObject);
-    }
-
-    public void TakeDamage(float damage)
-    {
-        currentHP -= damage;
-
-        if (currentHP <= 0)
+        public void TakeDamage(float damage)
         {
-            Die();
+            currentHP -= damage;
+            if (currentHP <= 0) Die();
         }
-    }
 
-    private void Die()
-    {
-        Destroy(gameObject);
+        #endregion
+
+
+        #region Private
+
+        private void Move()
+        {
+            if (!isPathReady) return;
+
+            Transform target = path[currentPathIndex];
+            transform.position = Vector3.MoveTowards(
+                transform.position,
+                target.position,
+                moveSpeed * Time.deltaTime
+            );
+
+            if (Vector3.Distance(transform.position, target.position) <= 0.01f)
+            {
+                currentPathIndex++;
+                if (currentPathIndex >= path.Count)
+                {
+                    ReachDestination();
+                }
+                else
+                {
+                    transform.LookAt(path[currentPathIndex]);
+                }
+            }
+        }
+
+        private void ReachDestination()
+        {
+            Destroy(gameObject);
+        }
+        private void Die()
+        {
+            Destroy(gameObject);
+        }
+
+        #endregion
     }
 }

@@ -1,5 +1,0 @@
-<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:VisualElement name="Root" style="flex-grow: 1;">
-        <ui:ListView name="StageListView" fixed-item-height="150" item-template="project://database/Assets/Match%20Defense/UI%20Toolkit/Lobby/StageButton.uxml?fileID=9197481963319205126&amp;guid=4bbca04f966759a49bc344bc76674009&amp;type=3#StageButton" focusable="false" style="flex-grow: 1; margin-right: 15%; margin-left: 15%; margin-bottom: 20%; margin-top: 20%; padding-left: 25%; padding-right: 25%;"/>
-    </ui:VisualElement>
-</ui:UXML>

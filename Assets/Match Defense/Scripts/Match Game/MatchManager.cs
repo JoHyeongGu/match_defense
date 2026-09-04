@@ -46,8 +46,7 @@ namespace MatchDefense.Match
         private void Start()
         {
             InitBoard();
-            if (ProgramManager.Instance != null)
-                ProgramManager.Instance.FinishLoading();
+            ProgramManager.Instance.FadeScreen(off: false);
         }
 
         private void Update()

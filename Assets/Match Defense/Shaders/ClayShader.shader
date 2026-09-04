@@ -27,6 +27,7 @@ Shader "Custom/ClayShader"
             "RenderType"="Opaque" 
             "RenderPipeline"="UniversalPipeline" 
             "Queue"="Geometry"
+            "DisableBatching"="True"
         }
         LOD 300
 
@@ -40,6 +41,11 @@ Shader "Custom/ClayShader"
             #pragma vertex vert
             #pragma fragment frag
 
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile _ _SHADOWS_SOFT
+
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
@@ -47,7 +53,7 @@ Shader "Custom/ClayShader"
             {
                 float4 positionOS   : POSITION;
                 float3 normalOS     : NORMAL;
-                float2 uv           : TEXCOORD0; // 모델의 원래 UV를 받아옵니다
+                float2 uv           : TEXCOORD0; 
             };
 
             struct Varyings
@@ -56,7 +62,7 @@ Shader "Custom/ClayShader"
                 float3 positionWS   : TEXCOORD0;
                 float3 normalOS     : TEXCOORD1;
                 float3 positionOS   : TEXCOORD2;
-                float2 uv           : TEXCOORD3; // 프래그먼트 셰이더로 UV 전달
+                float2 uv           : TEXCOORD3; 
             };
 
             CBUFFER_START(UnityPerMaterial)
@@ -79,37 +85,28 @@ Shader "Custom/ClayShader"
             Varyings vert(Attributes input)
             {
                 Varyings output;
-
-                // 모델의 기본 UV 스케일 및 오프셋 적용
                 output.uv = input.uv * _BaseMap_ST.xy + _BaseMap_ST.zw;
 
+                // [복구됨] 물체를 찌부시켜도 비율을 유지하도록 스케일을 계산합니다.
                 float3 objScale = float3(
                     length(GetObjectToWorldMatrix()[0].xyz),
                     length(GetObjectToWorldMatrix()[1].xyz),
                     length(GetObjectToWorldMatrix()[2].xyz)
                 );
-
                 float3 scaledPos = input.positionOS.xyz * objScale;
-                float3 blend = abs(input.normalOS);
-                blend /= (blend.x + blend.y + blend.z);
 
-                float2 noiseUV_X = scaledPos.zy * _NoiseScale;
-                float2 noiseUV_Y = scaledPos.xz * _NoiseScale;
-                float2 noiseUV_Z = scaledPos.xy * _NoiseScale;
-
-                float nX = SAMPLE_TEXTURE2D_LOD(_NoiseTex, sampler_NoiseTex, noiseUV_X, 0).r;
-                float nY = SAMPLE_TEXTURE2D_LOD(_NoiseTex, sampler_NoiseTex, noiseUV_Y, 0).r;
-                float nZ = SAMPLE_TEXTURE2D_LOD(_NoiseTex, sampler_NoiseTex, noiseUV_Z, 0).r;
-
-                float noiseVal = nX * blend.x + nY * blend.y + nZ * blend.z;
+                // 최적화된 노이즈 연산에 스케일이 적용된 좌표를 사용
+                float2 noiseUV = (scaledPos.xy * 0.7 + scaledPos.zz * 0.7) * _NoiseScale;
+                float noiseVal = SAMPLE_TEXTURE2D_LOD(_NoiseTex, sampler_NoiseTex, noiseUV, 0).r;
                 
-                // [수정] 중심축 기준이 아닌 정점의 노멀(표면 방향)을 기준으로 밀어냅니다.
-                float3 displaceDir = input.normalOS;
-                input.positionOS.xyz += displaceDir * (noiseVal - 0.5) * _Displacement;
+                input.positionOS.xyz += input.normalOS * (noiseVal - 0.5) * _Displacement;
 
-                output.positionHCS = TransformObjectToHClip(input.positionOS.xyz);
-                output.positionWS = TransformObjectToWorld(input.positionOS.xyz);
+                VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
+                output.positionHCS = vertexInput.positionCS;
+                output.positionWS = vertexInput.positionWS;
                 output.normalOS = input.normalOS;
+                
+                // [복구됨] 찌부되지 않은 정비율 좌표를 프래그먼트(지문 텍스처)로 넘겨줍니다.
                 output.positionOS = scaledPos; 
 
                 return output;
@@ -123,10 +120,8 @@ Shader "Custom/ClayShader"
                 float3 blend = abs(normalOS);
                 blend /= (blend.x + blend.y + blend.z);
 
-                // [수정] BaseMap은 3방향 빔프로젝터(Triplanar) 방식 대신, 원래 UV를 그대로 사용합니다.
                 half4 albedo = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv) * _BaseColor;
-
-                // 지문(Bump)과 노이즈는 형태와 무관하게 덮어야 하므로 Triplanar 유지
+                
                 float2 bumpUvX = posOS.zy * _BumpMap_ST.xy + _BumpMap_ST.zw;
                 float2 bumpUvY = posOS.xz * _BumpMap_ST.xy + _BumpMap_ST.zw;
                 float2 bumpUvZ = posOS.xy * _BumpMap_ST.xy + _BumpMap_ST.zw;
@@ -136,7 +131,6 @@ Shader "Custom/ClayShader"
                 half4 normZ_tex = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, bumpUvZ);
                 
                 float safeBumpScale = min(_BumpScale, 2.5);
-
                 float3 tX = UnpackNormalScale(normX_tex, safeBumpScale);
                 float3 tY = UnpackNormalScale(normY_tex, safeBumpScale);
                 float3 tZ = UnpackNormalScale(normZ_tex, safeBumpScale);
@@ -157,6 +151,12 @@ Shader "Custom/ClayShader"
                 inputData.positionWS = input.positionWS;
                 inputData.normalWS = normalWS;
                 inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
+                
+                #if defined(_MAIN_LIGHT_SHADOWS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE) || defined(_MAIN_LIGHT_SHADOWS_SCREEN)
+                    inputData.shadowCoord = TransformWorldToShadowCoord(input.positionWS);
+                #else
+                    inputData.shadowCoord = float4(0, 0, 0, 0);
+                #endif
 
                 SurfaceData surfaceData = (SurfaceData)0;
                 surfaceData.albedo = albedo.rgb;
@@ -164,20 +164,19 @@ Shader "Custom/ClayShader"
                 surfaceData.smoothness = _Smoothness;
                 surfaceData.alpha = albedo.a;
 
-                #if defined(_MAIN_LIGHT_SHADOWS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE)
-                    Light mainLight = GetMainLight(inputData.positionWS);
+                #if defined(_MAIN_LIGHT_SHADOWS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE) || defined(_MAIN_LIGHT_SHADOWS_SCREEN)
+                    Light mainLight = GetMainLight(inputData.shadowCoord);
                 #else
                     Light mainLight = GetMainLight();
                 #endif
 
                 float NdotL = dot(normalWS, mainLight.direction);
-                
-                // [이전 피드백 반영] 유저님이 찾아내신 완벽한 하프램버트 공식!
                 float wrapLighting = saturate(NdotL * 0.5 + 0.5);
-                half3 softGlow = albedo.rgb * mainLight.color * wrapLighting * _ClaySoftness;
+                float shadow = mainLight.shadowAttenuation;
                 
-                surfaceData.emission = softGlow;
-
+                half3 softGlow = albedo.rgb * mainLight.color * wrapLighting * _ClaySoftness;
+                surfaceData.emission = softGlow * shadow;
+                
                 return UniversalFragmentPBR(inputData, surfaceData);
             }
             ENDHLSL
@@ -225,23 +224,12 @@ Shader "Custom/ClayShader"
                     length(GetObjectToWorldMatrix()[1].xyz),
                     length(GetObjectToWorldMatrix()[2].xyz)
                 );
-
                 float3 scaledPos = input.positionOS.xyz * objScale;
-                float3 blend = abs(input.normalOS);
-                blend /= (blend.x + blend.y + blend.z);
 
-                float2 noiseUV_X = scaledPos.zy * _NoiseScale;
-                float2 noiseUV_Y = scaledPos.xz * _NoiseScale;
-                float2 noiseUV_Z = scaledPos.xy * _NoiseScale;
-
-                float nX = SAMPLE_TEXTURE2D_LOD(_NoiseTex, sampler_NoiseTex, noiseUV_X, 0).r;
-                float nY = SAMPLE_TEXTURE2D_LOD(_NoiseTex, sampler_NoiseTex, noiseUV_Y, 0).r;
-                float nZ = SAMPLE_TEXTURE2D_LOD(_NoiseTex, sampler_NoiseTex, noiseUV_Z, 0).r;
-
-                float noiseVal = nX * blend.x + nY * blend.y + nZ * blend.z;
+                float2 noiseUV = (scaledPos.xy * 0.7 + scaledPos.zz * 0.7) * _NoiseScale;
+                float noiseVal = SAMPLE_TEXTURE2D_LOD(_NoiseTex, sampler_NoiseTex, noiseUV, 0).r;
                 
-                float3 displaceDir = length(input.positionOS.xyz) > 0.001 ? normalize(input.positionOS.xyz) : input.normalOS;
-                input.positionOS.xyz += displaceDir * (noiseVal - 0.5) * _Displacement;
+                input.positionOS.xyz += input.normalOS * (noiseVal - 0.5) * _Displacement;
                 
                 float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
                 float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
@@ -253,6 +241,66 @@ Shader "Custom/ClayShader"
             half4 frag(Varyings input) : SV_Target
             {
                 return 0; 
+            }
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "DepthOnly"
+            Tags { "LightMode"="DepthOnly" }
+            
+            ZWrite On
+            ColorMask 0
+
+            HLSLPROGRAM
+            #pragma target 3.0
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+            struct Attributes
+            {
+                float4 positionOS   : POSITION;
+                float3 normalOS     : NORMAL;
+            };
+
+            struct Varyings
+            {
+                float4 positionHCS  : SV_POSITION;
+            };
+
+            CBUFFER_START(UnityPerMaterial)
+                float _Displacement;
+                float _NoiseScale;
+            CBUFFER_END
+
+            TEXTURE2D(_NoiseTex);   SAMPLER(sampler_NoiseTex);
+
+            Varyings vert(Attributes input)
+            {
+                Varyings output;
+                
+                float3 objScale = float3(
+                    length(GetObjectToWorldMatrix()[0].xyz),
+                    length(GetObjectToWorldMatrix()[1].xyz),
+                    length(GetObjectToWorldMatrix()[2].xyz)
+                );
+                float3 scaledPos = input.positionOS.xyz * objScale;
+
+                float2 noiseUV = (scaledPos.xy * 0.7 + scaledPos.zz * 0.7) * _NoiseScale;
+                float noiseVal = SAMPLE_TEXTURE2D_LOD(_NoiseTex, sampler_NoiseTex, noiseUV, 0).r;
+                
+                input.positionOS.xyz += input.normalOS * (noiseVal - 0.5) * _Displacement;
+
+                output.positionHCS = TransformObjectToHClip(input.positionOS.xyz);
+                return output;
+            }
+
+            half4 frag(Varyings input) : SV_Target
+            {
+                return 0;
             }
             ENDHLSL
         }

@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Bread_Idle
+  m_Shader: {fileID: 4800000, guid: cc4250ac258010e449b7335f3c0c5590, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 1
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 2800000, guid: 795a92d36637b5749be81edc3e6f26e3, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BumpMap:
+        m_Texture: {fileID: 2800000, guid: 268b459858782b947afb4f51bf6eecfd, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: 795a92d36637b5749be81edc3e6f26e3, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NoiseTex:
+        m_Texture: {fileID: 2800000, guid: 754eeb6f60b391f499b0f5b93f5f9967, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalTex:
+        m_Texture: {fileID: 2800000, guid: 268b459858782b947afb4f51bf6eecfd, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _VatNormTex0:
+        m_Texture: {fileID: 2800000, guid: 35add0f5c72f89b45a8b64dd2287f8cf, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _VatNormTex1:
+        m_Texture: {fileID: 2800000, guid: 431c19e4703219242a26a4cdca8e69b4, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _VatNormTex2:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _VatNormalTex:
+        m_Texture: {fileID: 2800000, guid: 6ef7b4785871741439f2d9376fe680c5, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _VatPosTex0:
+        m_Texture: {fileID: 2800000, guid: d3dea9538420d2c4fa6eee65fa88b402, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _VatPosTex1:
+        m_Texture: {fileID: 2800000, guid: b332e571625873b42b0c666b2df63442, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _VatPosTex2:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _VatPositionTex:
+        m_Texture: {fileID: 2800000, guid: 79e7bc37a26735f4a869d2e718277d7d, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AnimationTimeOffset: 0
+    - _BumpScale: 0.3
+    - _ClaySoftness: 0.5
+    - _Displacement: 0
+    - _Metallic: 0
+    - _NoiseScale: 1
+    - _Smoothness: 0.4
+    - _VatAnimFps: 16
+    - _VatAnimLength: 1.6666666
+    - _VatLoop0: 1
+    - _VatLoop1: 0
+    - _VatLoop2: 1
+    m_Colors:
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

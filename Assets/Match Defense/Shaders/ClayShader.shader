@@ -87,26 +87,24 @@ Shader "Custom/ClayShader"
                 Varyings output;
                 output.uv = input.uv * _BaseMap_ST.xy + _BaseMap_ST.zw;
 
-                // [복구됨] 물체를 찌부시켜도 비율을 유지하도록 스케일을 계산합니다.
-                float3 objScale = float3(
+                float3 objScale = max(float3(
                     length(GetObjectToWorldMatrix()[0].xyz),
                     length(GetObjectToWorldMatrix()[1].xyz),
                     length(GetObjectToWorldMatrix()[2].xyz)
-                );
+                ), 0.0001);
+                
                 float3 scaledPos = input.positionOS.xyz * objScale;
 
-                // 최적화된 노이즈 연산에 스케일이 적용된 좌표를 사용
                 float2 noiseUV = (scaledPos.xy * 0.7 + scaledPos.zz * 0.7) * _NoiseScale;
                 float noiseVal = SAMPLE_TEXTURE2D_LOD(_NoiseTex, sampler_NoiseTex, noiseUV, 0).r;
                 
-                input.positionOS.xyz += input.normalOS * (noiseVal - 0.5) * _Displacement;
+                input.positionOS.xyz += (input.normalOS / objScale) * (noiseVal - 0.5) * _Displacement;
 
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
                 output.positionHCS = vertexInput.positionCS;
                 output.positionWS = vertexInput.positionWS;
                 output.normalOS = input.normalOS;
                 
-                // [복구됨] 찌부되지 않은 정비율 좌표를 프래그먼트(지문 텍스처)로 넘겨줍니다.
                 output.positionOS = scaledPos; 
 
                 return output;
@@ -117,10 +115,24 @@ Shader "Custom/ClayShader"
                 float3 posOS = input.positionOS;
                 float3 normalOS = normalize(input.normalOS);
                 
+                // 블렌딩 가중치 (X, Y, Z 어느 면을 바라보고 있는지)
                 float3 blend = abs(normalOS);
                 blend /= (blend.x + blend.y + blend.z);
 
-                half4 albedo = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv) * _BaseColor;
+                // --- [핵심 변경] BaseMap Triplanar 적용 ---
+                // 기존의 input.uv 대신, 스케일이 보정된 posOS 좌표를 바탕으로 3방향 UV 생성
+                float2 baseUvX = posOS.zy * _BaseMap_ST.xy + _BaseMap_ST.zw;
+                float2 baseUvY = posOS.xz * _BaseMap_ST.xy + _BaseMap_ST.zw;
+                float2 baseUvZ = posOS.xy * _BaseMap_ST.xy + _BaseMap_ST.zw;
+
+                // 3방향에서 BaseMap 샘플링
+                half4 albedoX = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, baseUvX);
+                half4 albedoY = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, baseUvY);
+                half4 albedoZ = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, baseUvZ);
+
+                // 가중치를 곱해서 자연스럽게 혼합
+                half4 albedo = (albedoX * blend.x + albedoY * blend.y + albedoZ * blend.z) * _BaseColor;
+                // ----------------------------------------
                 
                 float2 bumpUvX = posOS.zy * _BumpMap_ST.xy + _BumpMap_ST.zw;
                 float2 bumpUvY = posOS.xz * _BumpMap_ST.xy + _BumpMap_ST.zw;
@@ -144,8 +156,12 @@ Shader "Custom/ClayShader"
                 float3 nZ = float3(tZ.x, tZ.y, tZ.z * sign(normalOS.z));
 
                 float3 finalNormalOS = normalize(nX * blend.x + nY * blend.y + nZ * blend.z);
-                float3 normalWS = TransformObjectToWorldNormal(finalNormalOS);
-                normalWS = normalize(normalWS);
+                
+                float3 rightWS   = normalize(TransformObjectToWorldDir(float3(1, 0, 0)));
+                float3 upWS      = normalize(TransformObjectToWorldDir(float3(0, 1, 0)));
+                float3 forwardWS = normalize(TransformObjectToWorldDir(float3(0, 0, 1)));
+
+                float3 normalWS = normalize(rightWS * finalNormalOS.x + upWS * finalNormalOS.y + forwardWS * finalNormalOS.z);
 
                 InputData inputData = (InputData)0;
                 inputData.positionWS = input.positionWS;
@@ -219,17 +235,18 @@ Shader "Custom/ClayShader"
             {
                 Varyings output;
                 
-                float3 objScale = float3(
+                float3 objScale = max(float3(
                     length(GetObjectToWorldMatrix()[0].xyz),
                     length(GetObjectToWorldMatrix()[1].xyz),
                     length(GetObjectToWorldMatrix()[2].xyz)
-                );
+                ), 0.0001);
+                
                 float3 scaledPos = input.positionOS.xyz * objScale;
 
                 float2 noiseUV = (scaledPos.xy * 0.7 + scaledPos.zz * 0.7) * _NoiseScale;
                 float noiseVal = SAMPLE_TEXTURE2D_LOD(_NoiseTex, sampler_NoiseTex, noiseUV, 0).r;
                 
-                input.positionOS.xyz += input.normalOS * (noiseVal - 0.5) * _Displacement;
+                input.positionOS.xyz += (input.normalOS / objScale) * (noiseVal - 0.5) * _Displacement;
                 
                 float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
                 float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
@@ -282,17 +299,18 @@ Shader "Custom/ClayShader"
             {
                 Varyings output;
                 
-                float3 objScale = float3(
+                float3 objScale = max(float3(
                     length(GetObjectToWorldMatrix()[0].xyz),
                     length(GetObjectToWorldMatrix()[1].xyz),
                     length(GetObjectToWorldMatrix()[2].xyz)
-                );
+                ), 0.0001);
+                
                 float3 scaledPos = input.positionOS.xyz * objScale;
 
                 float2 noiseUV = (scaledPos.xy * 0.7 + scaledPos.zz * 0.7) * _NoiseScale;
                 float noiseVal = SAMPLE_TEXTURE2D_LOD(_NoiseTex, sampler_NoiseTex, noiseUV, 0).r;
                 
-                input.positionOS.xyz += input.normalOS * (noiseVal - 0.5) * _Displacement;
+                input.positionOS.xyz += (input.normalOS / objScale) * (noiseVal - 0.5) * _Displacement;
 
                 output.positionHCS = TransformObjectToHClip(input.positionOS.xyz);
                 return output;

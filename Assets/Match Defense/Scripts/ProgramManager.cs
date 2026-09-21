@@ -43,9 +43,9 @@ namespace MatchDefense
 
 
         #region Fade Screen
-
-        public bool IsLoading => _fadeScreen == null ? _currentAlpha <= 0.05f 
-                                : _fadeScreen.resolvedStyle.opacity <= 0.05f;
+        
+        public bool IsLoading => _fadeScreen == null ? _currentAlpha > 0.05f
+                                : _fadeScreen.resolvedStyle.opacity > 0.05f;
         private Tween _fadeTween;
         private VisualElement _fadeScreen;
         private PanelRenderer _panelRenderer;
@@ -103,6 +103,6 @@ namespace MatchDefense
         }
 
         #endregion
-        
+
     }
 }

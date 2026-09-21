@@ -1,6 +1,7 @@
 using UnityEngine;
 using DG.Tweening;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace MatchDefense.Defense
 {
@@ -23,12 +24,14 @@ namespace MatchDefense.Defense
 
         public bool IsAlive => HP > 0;
         public float TraveledDistance { get; private set; }
+        public List<string> activeBuffs = new();
 
         private Tween pathTween;
         private Tween transitionTween;
         private MaterialPropertyBlock propBlock;
         private float pathLength;
         private float animOffset = 0f;
+        private float baseSpeed;
 
         private static readonly int[] VatPosTexIds = new int[]
         {
@@ -47,6 +50,20 @@ namespace MatchDefense.Defense
         {
             propBlock = new MaterialPropertyBlock();
             animOffset = Random.Range(0f, 5f);
+            baseSpeed = speed;
+        }
+        
+        private void Update()
+        {
+            if (!IsAlive || pathTween == null) return;
+
+            float currentSpeedMultiplier = 1f;
+            if (activeBuffs.Contains("StrawberryJam_Slow"))
+            {
+                currentSpeedMultiplier *= 0.3f;
+            }
+
+            pathTween.timeScale = currentSpeedMultiplier;
         }
 
         private void OnDestroy()

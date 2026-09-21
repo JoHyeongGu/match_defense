@@ -100,10 +100,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4748507682446964389}
-  - component: {fileID: 570132370254757369}
+  - component: {fileID: 4542422956395418575}
   - component: {fileID: 8026922934186555438}
   m_Layer: 0
-  m_Name: Unit
+  m_Name: Unit_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -125,7 +125,7 @@ Transform:
   - {fileID: 4955665568228193815}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &570132370254757369
+--- !u!114 &4542422956395418575
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -134,14 +134,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 4378722204824440986}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dfa62737177957a459d0346f8f513dd1, type: 3}
+  m_Script: {fileID: 11500000, guid: 2643b3b8e4e166042963b4706f6a4a21, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MatchDefense.Defense.Unit
+  m_EditorClassIdentifier: Assembly-CSharp::MatchDefense.Defense.Units.Bread
   damage: 1
   attackInterval: 1
   attackRange: 1
   attackType: 0
   maxTargets: 3
+  activeBuffs: []
+  weapon: {fileID: 1096274711515522676}
 --- !u!136 &8026922934186555438
 CapsuleCollider:
   m_ObjectHideFlags: 0

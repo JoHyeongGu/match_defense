@@ -16,23 +16,21 @@ namespace MatchDefense.Defense
             AreaOfEffect
         }
 
-        [Header("Stats")]
-        [SerializeField] protected int damage = 1;
-        [SerializeField] protected float attackInterval = 1f;
-        [SerializeField] protected float attackRange = 1f;
+        [Header("<color=yellow>Stats</color>")]
+        [SerializeField] public int damage = 1;
+        [SerializeField] public float attackInterval = 1f;
+        [SerializeField] public float attackRange = 1f;
 
-        [Header("Attack")]
+        [Header("<color=yellow>Attack</color>")]
         [SerializeField] protected AttackType attackType = AttackType.SingleTarget;
         [SerializeField] protected int maxTargets = 3;
 
-        public float AttackRange => attackRange;
-        public int Damage => damage;
-
-        protected readonly List<Enemy> targets = new List<Enemy>();
+        protected readonly List<Enemy> targets = new();
         protected float cooldown;
         private Vector2Int gridPos;
+        public List<string> activeBuffs = new();
 
-        protected virtual void Start()
+        private void Start()
         {
             if (UnitBoard.Instance != null)
             {
@@ -40,7 +38,7 @@ namespace MatchDefense.Defense
             }
         }
 
-        protected virtual void Update()
+        private void Update()
         {
             cooldown -= Time.deltaTime;
             if (cooldown <= 0f && TryAttack())
@@ -87,7 +85,7 @@ namespace MatchDefense.Defense
         #endregion
 
         #region Combat
-        protected bool IsInRange(Enemy enemy)
+        private bool IsInRange(Enemy enemy)
         {
             if (enemy == null || UnitBoard.Instance == null) return false;
 
@@ -116,12 +114,12 @@ namespace MatchDefense.Defense
             targets.Sort((a, b) => b.TraveledDistance.CompareTo(a.TraveledDistance));
 
             RotateTowardsTarget(targets[0]);
-            ExecuteAttack();
+            Attack();
 
             return true;
         }
 
-        protected virtual void RotateTowardsTarget(Enemy target)
+        private void RotateTowardsTarget(Enemy target)
         {
             if (target == null) return;
 
@@ -131,7 +129,7 @@ namespace MatchDefense.Defense
             transform.DOLookAt(targetPos, 0.3f).SetEase(Ease.OutQuad);
         }
 
-        protected virtual void ExecuteAttack()
+        protected virtual void Attack()
         {
             switch (attackType)
             {

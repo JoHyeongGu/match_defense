@@ -433,12 +433,13 @@ namespace MatchDefense.Match
 
                 if (totalToMerge <= 0)
                 {
-                    if (center.ItemType == 0 && Defense.UnitSpawnManager.Instance != null)
-                        Defense.UnitSpawnManager.Instance.AddCharge(group.Count);
+                    if (Defense.UnitSpawnManager.Instance != null)
+                        Defense.UnitSpawnManager.Instance.AddCharge(center.ItemType, group.Count);
 
                     center.PlayMatchEffect(() => ReturnItemToPool(center));
                     continue;
                 }
+
                 foreach (var item in group)
                 {
                     if (item != center)
@@ -449,8 +450,8 @@ namespace MatchDefense.Match
                             mergedCount++;
                             if (mergedCount >= totalToMerge)
                             {
-                                if (center.ItemType == 0 && Defense.UnitSpawnManager.Instance != null)
-                                    Defense.UnitSpawnManager.Instance.AddCharge(group.Count);
+                                if (Defense.UnitSpawnManager.Instance != null)
+                                    Defense.UnitSpawnManager.Instance.AddCharge(center.ItemType, group.Count);
 
                                 center.PlayMatchEffect(() => ReturnItemToPool(center));
                             }
@@ -458,7 +459,7 @@ namespace MatchDefense.Match
                     }
                 }
             }
-
+            
             for (int y = 0; y < heightCount; y++)
             {
                 for (int x = 0; x < widthCount; x++)

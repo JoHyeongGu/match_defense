@@ -7,134 +7,179 @@ using DG.Tweening;
 
 namespace MatchDefense.Defense
 {
-    public class UnitSpawnManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+    [System.Serializable]
+    public class UnitData
+    {
+        public int itemIndex;
+        public GameObject unitPrefab;
+        public float chargePerItem = 0.2f;
+        public GameObject dragArea;
+        public Slider chargeSlider;
+        public Image filledImage;
+        public TextMeshProUGUI unitCountText;
+        public RectTransform bounceIcon;
+
+        [HideInInspector] public float charge;
+        [HideInInspector] public int availableUnits;
+        [HideInInspector] public bool animating;
+    }
+
+    public class UnitSpawnManager : MonoBehaviour
     {
         public static UnitSpawnManager Instance { get; private set; }
-
-        [Header("UI Settings")]
-        [SerializeField] private Slider chargeSlider;
-        [SerializeField] private Image filledImage;
-        [SerializeField] private TextMeshProUGUI unitCountText;
-        [SerializeField] private RectTransform bounceIcon;
-
-        [Header("Spawn Settings")]
-        [SerializeField] private GameObject unitPrefab;
         [SerializeField] private Camera mainCamera;
-        [SerializeField] private LayerMask boardLayer;
-        [SerializeField] private float chargePerItem = 0.2f;
 
-        [Header("Preview Settings")]
-        [SerializeField] private GameObject previewPrefab;
+        [Header("<color=yellow>Unit Settings</color>")]
+        [SerializeField] private UnitData[] units;
+
+        [Header("<color=yellow>Spawn</color>")]
+        [SerializeField] private LayerMask boardLayer;
         [SerializeField] private Color spawnableColor = Color.green;
         [SerializeField] private Color unspawnableColor = Color.red;
 
         public static bool IsDraggingUnit { get; private set; }
 
-        private float charge = 0f;
-        private int availableUnits = 0;
-        private bool animating = false;
-
+        private UnitData currentDragUnit;
         private GameObject previewInstance;
         private UnitBoard activeBoard;
         private bool canSpawn = false;
         private Vector3 spawnPos = Vector3.zero;
 
+        #region Unity Lifecycle
         private void Awake()
         {
             if (Instance == null) Instance = this;
             else Destroy(gameObject);
 
-            chargeSlider.value = 0f;
-            filledImage.fillAmount = 0f;
-            UpdateUIText();
+            foreach (var unit in units)
+            {
+                if (unit.chargeSlider != null) unit.chargeSlider.value = 0f;
+                if (unit.filledImage != null) unit.filledImage.fillAmount = 0f;
+                UpdateUIText(unit);
+
+                if (unit.dragArea != null)
+                {
+                    EventTrigger trigger = unit.dragArea.GetComponent<EventTrigger>();
+                    if (trigger == null) trigger = unit.dragArea.AddComponent<EventTrigger>();
+
+                    EventTrigger.Entry beginDrag = new EventTrigger.Entry { eventID = EventTriggerType.BeginDrag };
+                    beginDrag.callback.AddListener((data) => OnBeginDragUnit(unit, (PointerEventData)data));
+                    trigger.triggers.Add(beginDrag);
+
+                    EventTrigger.Entry drag = new EventTrigger.Entry { eventID = EventTriggerType.Drag };
+                    drag.callback.AddListener((data) => OnDragUnit(unit, (PointerEventData)data));
+                    trigger.triggers.Add(drag);
+
+                    EventTrigger.Entry endDrag = new EventTrigger.Entry { eventID = EventTriggerType.EndDrag };
+                    endDrag.callback.AddListener((data) => OnEndDragUnit(unit, (PointerEventData)data));
+                    trigger.triggers.Add(endDrag);
+                }
+            }
         }
+        #endregion
 
         #region Charge System
-        public void AddCharge(int matchCount)
+        public void AddCharge(int itemIndex, int matchCount)
         {
-            float amount = matchCount * chargePerItem;
-            StartCoroutine(ChargeRoutine(amount, matchCount));
+            foreach (var unit in units)
+            {
+                if (unit.itemIndex == itemIndex)
+                {
+                    StartCoroutine(ChargeRoutine(unit, matchCount));
+                    break;
+                }
+            }
         }
 
-        private IEnumerator ChargeRoutine(float amount, int matchCount)
+        private IEnumerator ChargeRoutine(UnitData unit, int matchCount)
         {
-            while (animating) yield return null;
-            animating = true;
+            while (unit.animating) yield return null;
+            unit.animating = true;
 
-            bounceIcon.DOKill(true);
-            bounceIcon.localScale = Vector3.one;
-            Sequence bounceSeq = DOTween.Sequence();
-            
-            for (int i = 0; i < matchCount; i++)
+            if (unit.bounceIcon != null)
             {
-                bounceSeq.Append(bounceIcon.DOScale(Vector3.one * 1.3f, 0.08f).SetEase(Ease.OutQuad));
-                bounceSeq.Append(bounceIcon.DOScale(Vector3.one, 0.08f).SetEase(Ease.InQuad));
-            }
+                unit.bounceIcon.DOKill(true);
+                unit.bounceIcon.localScale = Vector3.one;
+                Sequence bounceSeq = DOTween.Sequence();
 
-            charge += amount;
-
-            if (charge >= 1f)
-            {
-                chargeSlider.DOValue(1f, 0.2f);
-                if (availableUnits == 0) filledImage.DOFillAmount(1f, 0.2f);
-
-                yield return new WaitForSeconds(0.2f);
-
-                while (charge >= 1f)
+                for (int i = 0; i < matchCount; i++)
                 {
-                    availableUnits++;
-                    charge -= 1f;
+                    bounceSeq.Append(unit.bounceIcon.DOScale(Vector3.one * 1.3f, 0.08f).SetEase(Ease.OutQuad));
+                    bounceSeq.Append(unit.bounceIcon.DOScale(Vector3.one, 0.08f).SetEase(Ease.InQuad));
                 }
-                UpdateUIText();
-                filledImage.fillAmount = 1f;
-                chargeSlider.DOValue(0f, 0.2f).SetEase(Ease.InOutQuad);
-                
+            }
+
+            unit.charge += matchCount * unit.chargePerItem;
+
+            if (unit.charge >= 1f)
+            {
+                if (unit.chargeSlider != null) unit.chargeSlider.DOValue(1f, 0.2f);
+                if (unit.availableUnits == 0 && unit.filledImage != null) unit.filledImage.DOFillAmount(1f, 0.2f);
+
+                yield return new WaitForSeconds(0.2f);
+
+                while (unit.charge >= 1f)
+                {
+                    unit.availableUnits++;
+                    unit.charge -= 1f;
+                }
+
+                UpdateUIText(unit);
+
+                if (unit.filledImage != null) unit.filledImage.fillAmount = 1f;
+                if (unit.chargeSlider != null) unit.chargeSlider.DOValue(0f, 0.2f).SetEase(Ease.InOutQuad);
+
                 yield return new WaitForSeconds(0.2f);
             }
 
-            chargeSlider.DOValue(charge, 0.2f);
+            if (unit.chargeSlider != null) unit.chargeSlider.DOValue(unit.charge, 0.2f);
 
-            if (availableUnits == 0)
+            if (unit.availableUnits == 0 && unit.filledImage != null)
             {
-                filledImage.DOFillAmount(charge, 0.2f);
+                unit.filledImage.DOFillAmount(unit.charge, 0.2f);
             }
 
             yield return new WaitForSeconds(0.2f);
-            animating = false;
+            unit.animating = false;
         }
 
-        private void UpdateUIText()
+        private void UpdateUIText(UnitData unit)
         {
-            if (unitCountText != null) unitCountText.text = availableUnits.ToString();
+            if (unit.unitCountText != null) unit.unitCountText.text = unit.availableUnits.ToString();
         }
         #endregion
 
         #region Drag & Drop
-        public void OnBeginDrag(PointerEventData eventData)
+        private void OnBeginDragUnit(UnitData unit, PointerEventData eventData)
         {
-            if (availableUnits <= 0) return;
+            if (unit == null || unit.availableUnits <= 0) return;
 
+            currentDragUnit = unit;
             IsDraggingUnit = true;
 
             if (UnitBoard.Instance != null)
             {
                 UnitBoard.Instance.ToggleGridVisibility(true);
 
-                Unit unit = unitPrefab.GetComponent<Unit>();
-                float range = unit != null ? unit.AttackRange : 2f;
+                Unit unitComp = currentDragUnit.unitPrefab.GetComponent<Unit>();
+                float range = unitComp != null ? unitComp.attackRange : 2f;
                 UnitBoard.Instance.SetHoverRange(range);
             }
 
-            if (previewPrefab != null)
+            if (currentDragUnit.unitPrefab != null)
             {
-                previewInstance = Instantiate(previewPrefab);
+                previewInstance = Instantiate(currentDragUnit.unitPrefab);
+
+                Unit previewUnit = previewInstance.GetComponent<Unit>();
+                if (previewUnit != null) previewUnit.enabled = false;
+
                 previewInstance.SetActive(false);
             }
         }
 
-        public void OnDrag(PointerEventData eventData)
+        private void OnDragUnit(UnitData unit, PointerEventData eventData)
         {
-            if (availableUnits <= 0) return;
+            if (currentDragUnit == null || currentDragUnit.availableUnits <= 0) return;
 
             Ray ray = mainCamera.ScreenPointToRay(eventData.position);
             Vector3 targetPos = Vector3.zero;
@@ -185,8 +230,10 @@ namespace MatchDefense.Defense
             }
         }
 
-        public void OnEndDrag(PointerEventData eventData)
+        private void OnEndDragUnit(UnitData unit, PointerEventData eventData)
         {
+            if (currentDragUnit == null) return;
+
             IsDraggingUnit = false;
 
             if (UnitBoard.Instance != null) UnitBoard.Instance.ToggleGridVisibility(false);
@@ -197,7 +244,7 @@ namespace MatchDefense.Defense
                 activeBoard = null;
             }
 
-            if (availableUnits <= 0)
+            if (currentDragUnit.availableUnits <= 0)
             {
                 if (previewInstance != null) Destroy(previewInstance);
                 return;
@@ -205,18 +252,19 @@ namespace MatchDefense.Defense
 
             if (canSpawn)
             {
-                Instantiate(unitPrefab, spawnPos, Quaternion.identity);
-                availableUnits--;
-                UpdateUIText();
+                Instantiate(currentDragUnit.unitPrefab, spawnPos, Quaternion.identity);
+                currentDragUnit.availableUnits--;
+                UpdateUIText(currentDragUnit);
 
-                if (availableUnits == 0)
+                if (currentDragUnit.availableUnits == 0 && currentDragUnit.filledImage != null)
                 {
-                    filledImage.DOFillAmount(charge, 0.3f).SetEase(Ease.OutQuad);
+                    currentDragUnit.filledImage.DOFillAmount(currentDragUnit.charge, 0.3f).SetEase(Ease.OutQuad);
                 }
             }
 
             if (previewInstance != null) Destroy(previewInstance);
             canSpawn = false;
+            currentDragUnit = null;
         }
         #endregion
 

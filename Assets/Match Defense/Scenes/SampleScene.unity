@@ -427,13 +427,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e319e85449d91043b81730476619159, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MatchDefense.Match.MatchManager
+  boardContainer: {fileID: 0}
   itemPrefab: {fileID: 3750196233155594833, guid: 7f37ae1feef11d24d93f811e0c583be5, type: 3}
   widthCount: 6
   heightCount: 6
-  itemTypeCount: 6
-  boardWidthRatio: 0.9
-  bottomPixelOffset: 150
+  matchClips: []
+  itemTypeWeights:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
   initialPoolSize: 64
+  hintDelay: 3
 --- !u!1 &652211190
 GameObject:
   m_ObjectHideFlags: 0

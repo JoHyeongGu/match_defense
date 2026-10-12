@@ -260,14 +260,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f9c406ccaa9d0640b6652fd4bf4d56f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MatchDefense.Defense.Units.StrawberryJam
+  maxHP: 3
   damage: 1
-  attackInterval: 8
-  attackRange: 1
-  attackType: 0
-  maxTargets: 3
-  buffMultiplier: 0.3
-  buffDuration: 5
-  jam: {fileID: 2987160378702292969}
+  cooldown: 2
+  range: 2
+  targetType: 0
+  atkCount: 1
+  atkInterval: 0
+  atkTargetCount: 1
+  buffValue: 0.3
+  buffDuration: 3
+  bulletPrefab: {fileID: 5423714179461476444, guid: c58915e1f2b12604fb6df2d12835fab7, type: 3}
 --- !u!136 &8026922934186555438
 CapsuleCollider:
   m_ObjectHideFlags: 0

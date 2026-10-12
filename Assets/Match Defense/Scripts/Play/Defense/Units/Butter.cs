@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 
@@ -7,65 +6,56 @@ namespace MatchDefense.Defense.Units
     public class Butter : Unit
     {
         [Header("<color=yellow>Butter</color>")]
-        [SerializeField] private float buffMultiplier = 0.3f;
+        [SerializeField] private float atkSpeedBuff = 0.5f;
+        [SerializeField] private float atkDamageBuff = 0.5f;
         [SerializeField] private float buffDuration = 5f;
         [SerializeField] private Transform butter;
 
-        private List<Unit> _targets = new();
-        private Sequence _atkSeq;
-        private const string BUFF_ID = "Butter_AtkSpeed";
+        private const string buffKey = "atkSpeed";
 
-        private void Awake()
+        protected override void Awake()
         {
-            attackInterval += buffDuration;
+            base.Awake();
+            cooldown += buffDuration;
         }
 
-        protected override bool TryAttack()
+        protected override bool IsInRange(Character character)
         {
-            if (UnitBoard.Instance == null) return false;
+            return base.IsInRange(character) && !character.HasBuff(buffKey) && !(character is Butter);
+        }
 
-            _targets.Clear();
-            Vector2Int myPos = UnitBoard.Instance.WorldToCell(transform.position);
-
-            foreach (Unit u in FindObjectsByType<Unit>())
+        protected override void Attack(Character target)
+        {
+            if (target is Unit unitTarget)
             {
-                if (u is StrawberryJam || u.activeBuffs.Contains(BUFF_ID)) continue;
-
-                if (Vector2.Distance(myPos, UnitBoard.Instance.WorldToCell(u.transform.position)) < attackRange + 0.5f)
-                    _targets.Add(u);
+                unitTarget.AddBuff(
+                    buffKey,
+                    action: () => InsertBuff(target as Unit),
+                    duration: buffDuration,
+                    release: () => RemoveBuff(target as Unit)
+                );
             }
-            Attack();
-            return true;
+
+            if (butter != null && !DOTween.IsTweening(butter))
+            {
+                butter.DOKill();
+                Sequence buffSeq = DOTween.Sequence();
+                buffSeq.Append(butter.DOScale(1f, 1f));
+                buffSeq.AppendInterval(0.3f);
+                buffSeq.Append(butter.DOScale(Vector3.zero, 2f).SetEase(Ease.InQuad));
+            }
         }
 
-        protected override void Attack()
+        private void InsertBuff(Unit target)
         {
-            _atkSeq?.Kill();
-            _atkSeq = DOTween.Sequence();
-            _atkSeq.Append(butter.DOScale(1f, 1f));
-            _atkSeq.InsertCallback(0.5f, () =>
-            {
-                foreach (Unit t in _targets)
-                {
-                    if (t != null)
-                    {
-                        t.attackInterval *= buffMultiplier;
-                        t.activeBuffs.Add(BUFF_ID);
-                    }
-                }
-            });
-            _atkSeq.InsertCallback(buffDuration + 0.5f, () =>
-            {
-                foreach (Unit t in _targets)
-                {
-                    if (t != null)
-                    {
-                        t.attackInterval /= buffMultiplier;
-                        t.activeBuffs.Remove(BUFF_ID);
-                    }
-                }
-            });
-            _atkSeq.Insert(buffDuration, butter.DOScale(0f, 1f));
+            target.cooldown *= atkSpeedBuff;
+            target.damage *= atkDamageBuff;
+        }
+
+        private void RemoveBuff(Unit target)
+        {
+            target.cooldown /= atkSpeedBuff;
+            target.damage /= atkDamageBuff;
         }
     }
 }

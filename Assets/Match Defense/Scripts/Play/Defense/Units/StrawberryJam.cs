@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 
@@ -7,61 +6,59 @@ namespace MatchDefense.Defense.Units
     public class StrawberryJam : Unit
     {
         [Header("<color=yellow>Strawberry Jam</color>")]
+        [SerializeField] private float buffValue = 0.3f;
         [SerializeField] private float buffDuration = 2f;
-        [SerializeField] private Transform jam;
+        [SerializeField] private GameObject bulletPrefab;
+        private const string buffKey = "slow";
 
-        private Sequence _atkSeq;
-        private const string BUFF_ID = "StrawberryJam_Slow";
-
-        private void Awake()
+        protected override bool IsInRange(Character character)
         {
-            attackInterval += buffDuration;
+            return base.IsInRange(character) && !character.HasBuff(buffKey);
         }
 
-        protected override bool TryAttack()
+        protected override void Attack(Character target)
         {
-            Attack();
-            return true;
+            if (target is Enemy enemyTarget)
+            {
+                ShootBullet(enemyTarget);
+            }
         }
 
-        protected override void Attack()
+        private void ShootBullet(Enemy target)
         {
-            _atkSeq?.Kill();
-            _atkSeq = DOTween.Sequence();
-            _atkSeq.Append(jam.DOScale(1f, 1f));
-            _atkSeq.InsertCallback(0.5f, () =>
-            {
-                if (UnitBoard.Instance == null || EnemySpawner.Instance == null) return;
+            float arcHeight = 1.0f;
+            float flightTime = 0.5f;
 
-                Vector2Int myPos = UnitBoard.Instance.WorldToCell(transform.position);
+            Vector3 predictedPos = target.transform.position + (target.transform.forward * target.CurrentSpeed * flightTime);
+            GameObject bullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
 
-                foreach (Enemy enemy in EnemySpawner.Instance.ActiveEnemies)
+            Destroy(bullet, 2f);
+            bullet.transform.localScale = Vector3.zero;
+
+            Sequence scaleSeq = DOTween.Sequence().SetLink(bullet);
+            scaleSeq.Append(bullet.transform.DOScale(new Vector3(0.6f, 1.2f, 0.6f), flightTime * 0.5f).SetEase(Ease.OutQuad));
+            scaleSeq.Append(bullet.transform.DOScale(new Vector3(0.7f, 0.7f, 0.7f), flightTime * 0.5f).SetEase(Ease.InQuad));
+
+            bullet.transform.DOJump(predictedPos, arcHeight, 1, flightTime)
+                .SetEase(Ease.OutQuart)
+                .SetLink(bullet)
+                .OnComplete(() =>
                 {
-                    if (enemy == null || !enemy.IsAlive) continue;
+                    scaleSeq.Kill();
+                    Sequence hitSeq = DOTween.Sequence().SetLink(bullet);
+                    hitSeq.Append(bullet.transform.DOScale(new Vector3(0.8f, 0.1f, 0.8f), 0.1f).SetEase(Ease.OutBack));
+                    hitSeq.Append(bullet.transform.DOScale(Vector3.zero, 1f).SetEase(Ease.InQuad));
+                    hitSeq.OnComplete(() => Destroy(bullet));
 
-                    Vector2Int enemyPos = UnitBoard.Instance.WorldToCell(enemy.transform.position);
-                    if (Vector2.Distance(myPos, enemyPos) < (attackRange + 0.5f))
-                    {
-                        if (!enemy.activeBuffs.Contains(BUFF_ID))
-                        {
-                            enemy.activeBuffs.Add(BUFF_ID);
-                        }
-                    }
-                }
-            });
-            _atkSeq.InsertCallback(buffDuration + 0.5f, () =>
-            {
-                if (EnemySpawner.Instance == null) return;
+                    if (target == null || !target.IsAlive) return;
 
-                foreach (Enemy enemy in EnemySpawner.Instance.ActiveEnemies)
-                {
-                    if (enemy != null)
-                    {
-                        enemy.activeBuffs.Remove(BUFF_ID);
-                    }
-                }
-            });
-            _atkSeq.Insert(buffDuration, jam.DOScale(0f, 1f));
+                    target.AddBuff(
+                        buffKey,
+                        action: () => target.SetMoveSpeed(buffValue),
+                        duration: buffDuration,
+                        release: () => target.SetMoveSpeed()
+                    );
+                });
         }
     }
 }

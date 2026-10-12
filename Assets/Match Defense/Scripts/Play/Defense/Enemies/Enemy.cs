@@ -1,37 +1,30 @@
 using UnityEngine;
 using DG.Tweening;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 
 namespace MatchDefense.Defense
 {
-    public class Enemy : MonoBehaviour
+    public class Enemy : Character
     {
-        private enum State
-        {
-            Walk,
-            Die
-        }
+        private enum State { Walk, Die }
 
-        [Header("Stats")]
+        [Header("<color=yellow>Move</color>")]
         [SerializeField] private float speed = 1f;
-        [SerializeField] private int HP = 3;
 
-        [Header("Animation")]
+        [Header("<color=yellow>Animation</color>")]
         [SerializeField] private int animIndex = 0;
         [SerializeField] private float transitionDuration = 0.1f;
         [SerializeField] private MeshRenderer meshRenderer;
 
-        public bool IsAlive => HP > 0;
+        public float CurrentSpeed => pathTween != null ? speed * pathTween.timeScale : speed;
         public float TraveledDistance { get; private set; }
-        public List<string> activeBuffs = new();
 
         private Tween pathTween;
         private Tween transitionTween;
         private MaterialPropertyBlock propBlock;
         private float pathLength;
         private float animOffset = 0f;
-        private float baseSpeed;
+        private Vector3 initialMeshScale;
 
         private static readonly int[] VatPosTexIds = new int[]
         {
@@ -46,31 +39,21 @@ namespace MatchDefense.Defense
         private static readonly int AnimOffsetId = Shader.PropertyToID("_AnimOffset");
         private static readonly int VatAnimFpsId = Shader.PropertyToID("_VatAnimFps");
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
+
             propBlock = new MaterialPropertyBlock();
-            animOffset = Random.Range(0f, 5f);
-            baseSpeed = speed;
-        }
-        
-        private void Update()
-        {
-            if (!IsAlive || pathTween == null) return;
+            animOffset = UnityEngine.Random.Range(0f, 5f);
 
-            float currentSpeedMultiplier = 1f;
-            if (activeBuffs.Contains("StrawberryJam_Slow"))
-            {
-                currentSpeedMultiplier *= 0.3f;
-            }
-
-            pathTween.timeScale = currentSpeedMultiplier;
+            if (meshRenderer != null)
+                initialMeshScale = meshRenderer.transform.localScale;
         }
 
         private void OnDestroy()
         {
             pathTween?.Kill();
             transitionTween?.Kill();
-
             if (EnemySpawner.Instance != null) EnemySpawner.Instance.RemoveEnemy(this);
         }
 
@@ -94,22 +77,36 @@ namespace MatchDefense.Defense
             });
         }
 
-        public void Attacked(int damage)
+        public override void Attacked(float damage)
         {
             if (!IsAlive) return;
-            HP -= damage;
-            if (HP <= 0) _ = Die();
+
+            float hpRatio = Mathf.Clamp01((currentHP - damage) / maxHP);
+            if (meshRenderer != null)
+            {
+                meshRenderer.transform.DOKill(true);
+                meshRenderer.transform.localScale = initialMeshScale * Mathf.Lerp(0.4f, 1.0f, hpRatio);
+                meshRenderer.transform.DOPunchScale(new Vector3(0.3f, -0.2f, 0.3f), 0.15f, 2, 0.5f);
+            }
+
+            base.Attacked(damage);
         }
 
-        private async Task Die()
+        protected override void Die()
         {
             pathTween?.Pause();
-            await SetAnimation(State.Die);
+            _ = SetAnimation(State.Die);
             transform.DOScale(0f, 0.3f).SetEase(Ease.InBack).OnComplete(() =>
             {
                 transform.DOKill();
                 Destroy(gameObject);
             });
+        }
+
+        public void SetMoveSpeed(float _multi = 1.0f)
+        {
+            if (!IsAlive || pathTween == null) return;
+            pathTween.timeScale = _multi;
         }
         #endregion
 

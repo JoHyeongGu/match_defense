@@ -8,19 +8,23 @@ namespace MatchDefense.Match
 {
     public class MatchManager : MonoBehaviour
     {
-        [Header("<color=yellow>UI Board Settings</color>")]
-        [Tooltip("매치 아이템들이 배치될 빈 UI 패널 (RectTransform)")]
+        [Header("<color=yellow>UI Board</color>")]
         [SerializeField] private RectTransform boardContainer;
         [SerializeField] private MatchItem itemPrefab;
         [SerializeField] private int widthCount = 6;
         [SerializeField] private int heightCount = 6;
 
-        [Header("<color=yellow>Item Spawn Probabilities</color>")]
-        [Tooltip("각 아이템 인덱스별 등장 가중치. 값이 높을수록 잘 나옵니다.")]
-        [SerializeField] private float[] itemTypeWeights = new float[] { 1f, 1f, 1f, 1f, 1f }; // 기본 5개, 동일 확률
+        [Header("<color=yellow>Audio</color>")]
+        [SerializeField] private AudioClip[] matchClips;
+
+        [Header("<color=yellow>Item Spawn</color>")]
+        [SerializeField] private float[] itemTypeWeights = new float[] { 1f, 1f, 1f, 1f, 1f };
 
         [Header("<color=yellow>Optimization</color>")]
         [SerializeField] private int initialPoolSize = 64;
+
+        [Header("<color=yellow>Hint System</color>")]
+        [SerializeField] private float hintDelay = 3f;
 
         private int selectedX = -1;
         private int selectedY = -1;
@@ -37,8 +41,12 @@ namespace MatchDefense.Match
         private Queue<MatchItem> bfsQueue = new Queue<MatchItem>();
         private int activeGroupCount = 0;
 
-        // 가중치 누적 계산용
         private float _totalWeight;
+
+        private float idleTimer = 0f;
+        private MatchItem currentHintItem = null;
+        private Sequence hintSeq;
+        private Vector2 hintOriginalPos;
 
         #region Unity
         private void Awake()
@@ -59,12 +67,25 @@ namespace MatchDefense.Match
         private void Update()
         {
             if (ProgramManager.Instance != null && ProgramManager.Instance.IsLoading) return;
+
             HandleInput();
+
+            if (!isProcessing && selectedX == -1)
+            {
+                idleTimer += Time.deltaTime;
+                if (idleTimer >= hintDelay && currentHintItem == null)
+                {
+                    ShowHint();
+                }
+            }
+            else
+            {
+                ResetHint();
+            }
         }
 
         private void OnValidate()
         {
-            // Inspector에서 값이 바뀔 때마다 총 가중치를 재계산 (에디터 편의성)
             CalculateTotalWeight();
         }
         #endregion
@@ -78,6 +99,7 @@ namespace MatchDefense.Match
 
             if (Pointer.current.press.wasPressedThisFrame)
             {
+                ResetHint();
                 SelectNode(pointerPos);
             }
             else if (Pointer.current.press.isPressed && selectedX != -1)
@@ -113,7 +135,7 @@ namespace MatchDefense.Match
                     int dx = Mathf.Abs(x - selectedX);
                     int dy = Mathf.Abs(y - selectedY);
 
-                    if (dx + dy == 1) // 상하좌우 1칸 스왑
+                    if (dx + dy == 1)
                     {
                         StartCoroutine(SwapRoutine(selectedX, selectedY, x, y));
                         selectedX = -1;
@@ -252,7 +274,6 @@ namespace MatchDefense.Match
             }
         }
 
-        // [신규] 총 가중치 계산
         private void CalculateTotalWeight()
         {
             _totalWeight = 0f;
@@ -262,7 +283,6 @@ namespace MatchDefense.Match
             }
         }
 
-        // [신규] 가중치 기반 랜덤 타입 선택
         private int GetRandomTypeWeighted()
         {
             if (_totalWeight <= 0f) return 0;
@@ -278,15 +298,15 @@ namespace MatchDefense.Match
                     return i;
                 }
             }
-            return itemTypeWeights.Length - 1; // Fallback
+            return itemTypeWeights.Length - 1;
         }
 
         private int GetRandomTypeWithoutMatch(int x, int y)
         {
             int type = 0;
-            for (int i = 0; i < 15; i++) // 시도 횟수 약간 증가
+            for (int i = 0; i < 15; i++)
             {
-                type = GetRandomTypeWeighted(); // 가중치 기반 랜덤 호출
+                type = GetRandomTypeWeighted();
                 bool matchX = (x >= 2 && GetItem(x - 1, y)?.ItemType == type && GetItem(x - 2, y)?.ItemType == type);
                 bool matchY = (y >= 2 && GetItem(x, y - 1)?.ItemType == type && GetItem(x, y - 2)?.ItemType == type);
                 if (!matchX && !matchY) break;
@@ -385,8 +405,6 @@ namespace MatchDefense.Match
 
         private void ProcessMatches(MatchItem swapped1, MatchItem swapped2)
         {
-            StartCoroutine(DelayedHapticRoutine(0.3f));
-
             activeGroupCount = 0;
             foreach (var group in matchGroups) group.Clear();
 
@@ -421,6 +439,7 @@ namespace MatchDefense.Match
                 }
                 activeGroupCount++;
             }
+            StartCoroutine(DelayedHapticRoutine(0.25f, activeGroupCount));
 
             for (int i = 0; i < activeGroupCount; i++)
             {
@@ -459,7 +478,7 @@ namespace MatchDefense.Match
                     }
                 }
             }
-            
+
             for (int y = 0; y < heightCount; y++)
             {
                 for (int x = 0; x < widthCount; x++)
@@ -506,7 +525,7 @@ namespace MatchDefense.Match
                     Vector2 endPos = GetAnchoredPosition(x, y);
 
                     MatchItem newItem = GetItemFromPool(startPos);
-                    int randomType = GetRandomTypeWeighted(); // 여기도 가중치 랜덤으로 변경
+                    int randomType = GetRandomTypeWeighted();
                     newItem.ChangeType(randomType);
                     newItem.BoardPos = startPos;
 
@@ -534,8 +553,10 @@ namespace MatchDefense.Match
             }
         }
 
-        private bool CheckPossibleMoves()
+        private bool GetPossibleMove(out int outX1, out int outY1, out int outX2, out int outY2)
         {
+            outX1 = outY1 = outX2 = outY2 = -1;
+
             for (int y = 0; y < heightCount; y++)
             {
                 for (int x = 0; x < widthCount; x++)
@@ -547,7 +568,12 @@ namespace MatchDefense.Match
                         SwapInArray(x, y, x + 1, y);
                         bool hasMatch = CheckMatchAt(x, y) || CheckMatchAt(x + 1, y);
                         SwapInArray(x, y, x + 1, y);
-                        if (hasMatch) return true;
+
+                        if (hasMatch)
+                        {
+                            outX1 = x; outY1 = y; outX2 = x + 1; outY2 = y;
+                            return true;
+                        }
                     }
 
                     if (y < heightCount - 1 && GetItem(x, y + 1) != null)
@@ -555,11 +581,21 @@ namespace MatchDefense.Match
                         SwapInArray(x, y, x, y + 1);
                         bool hasMatch = CheckMatchAt(x, y) || CheckMatchAt(x, y + 1);
                         SwapInArray(x, y, x, y + 1);
-                        if (hasMatch) return true;
+
+                        if (hasMatch)
+                        {
+                            outX1 = x; outY1 = y; outX2 = x; outY2 = y + 1;
+                            return true;
+                        }
                     }
                 }
             }
             return false;
+        }
+
+        private bool CheckPossibleMoves()
+        {
+            return GetPossibleMove(out _, out _, out _, out _);
         }
 
         private void SwapInArray(int x1, int y1, int x2, int y2)
@@ -652,17 +688,66 @@ namespace MatchDefense.Match
         }
         #endregion
 
-        #region Haptic
-        // 유니티 빌더가 안드로이드 VIBRATE 권한을 넣도록 유도하는 더미 코드 (절대 지우지 마세요!)
+        #region Hint
+        private void ShowHint()
+        {
+            if (GetPossibleMove(out int x1, out int y1, out int x2, out int y2))
+            {
+                currentHintItem = GetItem(x1, y1);
+                if (currentHintItem == null) return;
+
+                hintOriginalPos = currentHintItem.RectTr.anchoredPosition;
+                Vector2 targetPos = GetAnchoredPosition(x2, y2);
+
+                Vector2 moveDir = (targetPos - hintOriginalPos).normalized * (itemSize * 0.3f);
+
+                hintSeq = DOTween.Sequence().SetLink(currentHintItem.gameObject);
+
+                hintSeq.Append(currentHintItem.RectTr.DOAnchorPos(hintOriginalPos + moveDir, 0.15f).SetEase(Ease.OutQuad));
+                hintSeq.Append(currentHintItem.RectTr.DOAnchorPos(hintOriginalPos, 0.15f).SetEase(Ease.InQuad));
+
+                hintSeq.AppendInterval(1.0f);
+                hintSeq.SetLoops(-1);
+            }
+        }
+
+        private void ResetHint()
+        {
+            idleTimer = 0f;
+
+            if (currentHintItem != null)
+            {
+                hintSeq?.Kill();
+
+                currentHintItem.RectTr.anchoredPosition = hintOriginalPos;
+                currentHintItem.RectTr.localScale = Vector3.one;
+
+                currentHintItem = null;
+            }
+        }
+        #endregion
+
+        #region Haptic & Audio
         private void ForceVibrationPermissionDummy()
         {
             Handheld.Vibrate();
         }
 
-        // 0.5초 딜레이를 주기 위한 코루틴 함수
-        private IEnumerator DelayedHapticRoutine(float delayTime)
+        private IEnumerator DelayedHapticRoutine(float delayTime, int matchCount)
         {
-            // 지정한 시간(0.5초)만큼 대기
+            if (SoundManager.Instance != null && matchClips != null && matchClips.Length > 0)
+            {
+                int safeMatchCount = Mathf.Max(1, matchCount);
+
+                for (int i = 0; i < safeMatchCount; i++)
+                {
+                    float pitch = 1f + (i * 0.08f);
+                    SoundManager.Instance.PlayRandomSFX(matchClips, 1f, pitch);
+                    if (i < safeMatchCount - 1)
+                        yield return new WaitForSeconds(0.05f);
+                }
+            }
+
             yield return new WaitForSeconds(delayTime);
 
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -674,8 +759,6 @@ namespace MatchDefense.Match
                 {
                     if (vibrator != null)
                     {
-                        // [핵심] 150ms 동안 울리되, 세기(Amplitude)를 50으로 아주 약하게 설정 (최대 255)
-                        // 이렇게 하면 날카로운 '틱!'이 아니라 부드럽고 약한 '지이잉~' 느낌이 납니다.
                         using (AndroidJavaClass vibrationEffect = new AndroidJavaClass("android.os.VibrationEffect"))
                         {
                             AndroidJavaObject effect = vibrationEffect.CallStatic<AndroidJavaObject>("createOneShot", 300L, 5);
@@ -686,7 +769,6 @@ namespace MatchDefense.Match
             }
             catch
             {
-                // 구형 안드로이드 기기에서 세기 조절 API가 안 먹힐 경우를 대비한 안전 장치
                 try
                 {
                     using (AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))

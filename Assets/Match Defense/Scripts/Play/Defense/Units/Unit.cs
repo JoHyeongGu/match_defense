@@ -1,157 +1,182 @@
-// Unit.cs
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using DG.Tweening;
 using UnityEngine.EventSystems;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using DG.Tweening;
 
 namespace MatchDefense.Defense
 {
-    public class Unit : MonoBehaviour
+    public class Unit : Character
     {
-        public enum AttackType
-        {
-            SingleTarget,
-            MultiTarget,
-            AreaOfEffect
-        }
-
-        [Header("<color=yellow>Stats</color>")]
-        [SerializeField] public int damage = 1;
-        [SerializeField] public float attackInterval = 1f;
-        [SerializeField] public float attackRange = 1f;
+        public enum TargetType { Enemy, Ally, Both }
 
         [Header("<color=yellow>Attack</color>")]
-        [SerializeField] protected AttackType attackType = AttackType.SingleTarget;
-        [SerializeField] protected int maxTargets = 3;
+        public float damage = 1f;
+        public float cooldown = 1f;
+        public float range = 1f;
+        [SerializeField] protected TargetType targetType = TargetType.Enemy;
+        [SerializeField] protected int atkCount = 1;
+        [SerializeField] protected float atkInterval = 0f;
+        [Tooltip("Atk Target Count < 0 : Targeting All Characters")]
+        [SerializeField] protected int atkTargetCount = 1;
 
-        protected readonly List<Enemy> targets = new();
-        protected float cooldown;
-        private Vector2Int gridPos;
-        public List<string> activeBuffs = new();
+        protected readonly List<Character> targets = new();
+        protected float _timer;
+        public Vector2Int GridPos { get; private set; }
+
+        protected override void Awake()
+        {
+            base.Awake();
+        }
 
         private void Start()
         {
             if (UnitBoard.Instance != null)
-            {
-                gridPos = UnitBoard.Instance.WorldToCell(transform.position);
-            }
+                GridPos = UnitBoard.Instance.WorldToCell(transform.position);
+
+            if (UnitSpawnManager.Instance != null)
+                UnitSpawnManager.Instance.AddSpawnedUnit(this);
+        }
+
+        protected virtual void OnDestroy()
+        {
+            if (UnitSpawnManager.Instance != null)
+                UnitSpawnManager.Instance.RemoveSpawnedUnit(this);
         }
 
         private void Update()
         {
-            cooldown -= Time.deltaTime;
-            if (cooldown <= 0f && TryAttack())
-            {
-                cooldown = attackInterval;
-            }
-
             HandleSelection();
+
+            _timer -= Time.deltaTime;
+
+            if (_timer <= 0f && FindTargets())
+            {
+                _timer = cooldown;
+                ExecuteAttack();
+            }
         }
 
-        #region Selection
+        protected override void Die()
+        {
+            transform.DOKill();
+            Destroy(gameObject);
+        }
+
+        #region Utils
+        protected virtual bool IsInRange(Character character)
+        {
+            if (character == null || UnitBoard.Instance == null) return false;
+            return Vector2.Distance(GridPos, UnitBoard.Instance.WorldToCell(character.transform.position)) < (range + 0.5f);
+        }
+
+        private void LookAt(Character target)
+        {
+            if (target == null) return;
+            Vector3 pos = target.transform.position;
+            pos.y = transform.position.y;
+            transform.DOLookAt(pos, 0.3f).SetEase(Ease.OutQuad);
+        }
+
         private void HandleSelection()
         {
             if (Pointer.current == null || !Pointer.current.press.wasPressedThisFrame) return;
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
-            if (Camera.main == null) return;
+            if (EventSystem.current?.IsPointerOverGameObject() == true || Camera.main == null) return;
 
             Ray ray = Camera.main.ScreenPointToRay(Pointer.current.position.ReadValue());
-            if (Physics.Raycast(ray, out RaycastHit hit))
+            bool isHit = Physics.Raycast(ray, out RaycastHit hit);
+            bool isSelf = isHit && (hit.transform == transform || hit.transform.IsChildOf(transform));
+
+            if (isSelf)
             {
-                if (hit.transform == transform || hit.transform.IsChildOf(transform))
-                {
-                    if (UnitBoard.Instance != null)
-                    {
-                        UnitBoard.Instance.ShowUnitRange(transform.position, attackRange);
-                    }
-                }
-                else
-                {
-                    Unit clickedUnit = hit.transform.GetComponentInParent<Unit>();
-                    if (clickedUnit == null && UnitBoard.Instance != null && !UnitSpawnManager.IsDraggingUnit)
-                    {
-                        UnitBoard.Instance.ClearHover();
-                        UnitBoard.Instance.ToggleGridVisibility(false);
-                    }
-                }
+                UnitBoard.Instance?.ShowUnitRange(transform.position, range);
             }
-            else if (UnitBoard.Instance != null && !UnitSpawnManager.IsDraggingUnit)
+            else if (!UnitSpawnManager.IsDraggingUnit)
             {
-                UnitBoard.Instance.ClearHover();
-                UnitBoard.Instance.ToggleGridVisibility(false);
+                Unit clickedUnit = isHit ? hit.transform.GetComponentInParent<Unit>() : null;
+                if (clickedUnit == null)
+                {
+                    UnitBoard.Instance?.ClearHover();
+                    UnitBoard.Instance?.ToggleGridVisibility(false);
+                }
             }
         }
         #endregion
 
-        #region Combat
-        private bool IsInRange(Enemy enemy)
+        #region Attack
+        protected virtual void Attack(Character target) => target.Attacked(damage);
+
+        private async void ExecuteAttack()
         {
-            if (enemy == null || UnitBoard.Instance == null) return false;
+            for (int i = 0; i < atkCount; i++)
+            {
+                if (this == null) return;
 
-            Vector2Int enemyPos = UnitBoard.Instance.WorldToCell(enemy.transform.position);
-            float tileDistance = Vector2.Distance(gridPos, enemyPos);
+                // 타격 간격이 있는 다단 히트일 경우에만 재탐색
+                if (i > 0 && atkInterval > 0f)
+                {
+                    if (!FindTargets()) break;
+                }
 
-            return tileDistance < (attackRange + 0.5f);
+                // 가장 가까운 타겟을 바라봄
+                if (targets.Count > 0) LookAt(targets[0]);
+
+                foreach (var target in targets)
+                {
+                    if (target == null || !target.IsAlive) continue;
+                    Attack(target);
+                }
+
+                // 다음 타격까지 대기
+                if (atkInterval > 0f && i < atkCount - 1)
+                    await Task.Delay((int)(atkInterval * 1000));
+            }
         }
 
-        protected virtual bool TryAttack()
+        protected virtual bool FindTargets()
         {
-            if (EnemySpawner.Instance == null) return false;
-
             targets.Clear();
 
-            foreach (var enemy in EnemySpawner.Instance.ActiveEnemies)
+            // 1. 적(Enemy) 탐색
+            if (targetType == TargetType.Enemy || targetType == TargetType.Both)
             {
-                if (enemy != null && enemy.IsAlive && IsInRange(enemy))
+                if (EnemySpawner.Instance != null)
                 {
-                    targets.Add(enemy);
+                    foreach (var enemy in EnemySpawner.Instance.ActiveEnemies)
+                    {
+                        if (enemy != null && enemy.IsAlive && IsInRange(enemy))
+                            targets.Add(enemy);
+                    }
                 }
             }
-
+            // 2. 아군(Unit) 탐색
+            if (targetType == TargetType.Ally || targetType == TargetType.Both)
+            {
+                if (UnitSpawnManager.Instance != null)
+                {
+                    foreach (var unit in UnitSpawnManager.Instance.SpawnedUnits)
+                    {
+                        if (unit != null && unit != this && unit.IsAlive && IsInRange(unit))
+                            targets.Add(unit);
+                    }
+                }
+            }
             if (targets.Count == 0) return false;
 
-            targets.Sort((a, b) => b.TraveledDistance.CompareTo(a.TraveledDistance));
+            targets.Sort((a, b) =>
+            {
+                if (a is Enemy enemyA && b is Enemy enemyB)
+                    return enemyB.TraveledDistance.CompareTo(enemyA.TraveledDistance); // 가장 앞선 적 우선
 
-            RotateTowardsTarget(targets[0]);
-            Attack();
+                return Vector3.Distance(transform.position, a.transform.position)
+                    .CompareTo(Vector3.Distance(transform.position, b.transform.position)); // 가장 가까운 아군 우선
+            });
+
+            if (atkTargetCount >= 0 && targets.Count > atkTargetCount)
+                targets.RemoveRange(atkTargetCount, targets.Count - atkTargetCount);
 
             return true;
-        }
-
-        private void RotateTowardsTarget(Enemy target)
-        {
-            if (target == null) return;
-
-            Vector3 targetPos = target.transform.position;
-            targetPos.y = transform.position.y;
-
-            transform.DOLookAt(targetPos, 0.3f).SetEase(Ease.OutQuad);
-        }
-
-        protected virtual void Attack()
-        {
-            switch (attackType)
-            {
-                case AttackType.SingleTarget:
-                    targets[0].Attacked(damage);
-                    break;
-
-                case AttackType.MultiTarget:
-                    int count = Mathf.Min(targets.Count, maxTargets);
-                    for (int i = 0; i < count; i++)
-                    {
-                        targets[i].Attacked(damage);
-                    }
-                    break;
-
-                case AttackType.AreaOfEffect:
-                    foreach (var target in targets)
-                    {
-                        target.Attacked(damage);
-                    }
-                    break;
-            }
         }
         #endregion
     }

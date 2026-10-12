@@ -8,16 +8,14 @@ Shader "Custom/ClayShader"
         [Header(Fingerprint and Texture)]
         _BumpMap ("Fingerprint Normal Map", 2D) = "bump" {}
         _BumpScale ("Normal Intensity", Range(0, 5)) = 1.0
-        
-        [Header(Shape Displacement)]
-        _NoiseTex ("Noise Texture (For Shape)", 2D) = "white" {}
-        _Displacement ("Displacement Amount", Range(0, 0.5)) = 0.05
-        _NoiseScale ("Noise Scale", Range(0.1, 10)) = 1.0
 
-        [Header(Clay Look Settings)]
+        [Header(Clay Shadow Settings)]
+        _ShadowStrength ("Shadow Strength", Range(0, 1)) = 0.6
+        _ShadowTint ("Shadow Tint", Color) = (0.5, 0.4, 0.3, 1)
+
+        [Header(PBR Settings)]
         _Smoothness ("Smoothness", Range(0, 1)) = 0.0
         _Metallic ("Metallic", Range(0, 1)) = 0.0
-        _ClaySoftness ("Clay Shadow Softness", Range(0, 1)) = 0.3
     }
     
     SubShader
@@ -41,10 +39,10 @@ Shader "Custom/ClayShader"
             #pragma vertex vert
             #pragma fragment frag
 
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_SCREEN
-            #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -68,19 +66,17 @@ Shader "Custom/ClayShader"
             CBUFFER_START(UnityPerMaterial)
                 float4 _BaseMap_ST;
                 float4 _BumpMap_ST;
-                float4 _NoiseTex_ST;
                 float4 _BaseColor;
                 float _BumpScale;
-                float _Displacement;
-                float _NoiseScale;
                 float _Smoothness;
                 float _Metallic;
-                float _ClaySoftness;
+                
+                float _ShadowStrength;
+                float4 _ShadowTint;
             CBUFFER_END
 
             TEXTURE2D(_BaseMap);    SAMPLER(sampler_BaseMap);
             TEXTURE2D(_BumpMap);    SAMPLER(sampler_BumpMap);
-            TEXTURE2D(_NoiseTex);   SAMPLER(sampler_NoiseTex);
 
             Varyings vert(Attributes input)
             {
@@ -95,11 +91,6 @@ Shader "Custom/ClayShader"
                 
                 float3 scaledPos = input.positionOS.xyz * objScale;
 
-                float2 noiseUV = (scaledPos.xy * 0.7 + scaledPos.zz * 0.7) * _NoiseScale;
-                float noiseVal = SAMPLE_TEXTURE2D_LOD(_NoiseTex, sampler_NoiseTex, noiseUV, 0).r;
-                
-                input.positionOS.xyz += (input.normalOS / objScale) * (noiseVal - 0.5) * _Displacement;
-
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
                 output.positionHCS = vertexInput.positionCS;
                 output.positionWS = vertexInput.positionWS;
@@ -110,30 +101,47 @@ Shader "Custom/ClayShader"
                 return output;
             }
 
+            half4 CustomClayLighting(InputData inputData, SurfaceData surfaceData, float shadowStrength, half3 shadowTint)
+            {
+                BRDFData brdfData;
+                InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, half3(0,0,0), surfaceData.smoothness, surfaceData.alpha, brdfData);
+
+                Light mainLight = GetMainLight(inputData.shadowCoord);
+                
+                half modifiedShadow = lerp(1.0, mainLight.shadowAttenuation, shadowStrength);
+                mainLight.shadowAttenuation = modifiedShadow;
+                
+                // 깨져있던 수식 수정: (1.0 - modifiedShadow) * 0.5
+                half3 shadowAmbient = surfaceData.albedo * shadowTint * (1.0 - modifiedShadow) * 0.5;
+                inputData.bakedGI += shadowAmbient;
+
+                half3 color = GlobalIllumination(brdfData, inputData.bakedGI, 1.0, inputData.normalWS, inputData.viewDirectionWS);
+                color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
+
+                #ifdef _ADDITIONAL_LIGHTS
+                uint pixelLightCount = GetAdditionalLightsCount();
+                for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
+                {
+                    Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+                    light.shadowAttenuation = lerp(1.0, light.shadowAttenuation, shadowStrength);
+                    color += LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS);
+                }
+                #endif
+
+                return half4(color, surfaceData.alpha);
+            }
+
             half4 frag(Varyings input) : SV_Target
             {
                 float3 posOS = input.positionOS;
                 float3 normalOS = normalize(input.normalOS);
                 
-                // 블렌딩 가중치 (X, Y, Z 어느 면을 바라보고 있는지)
                 float3 blend = abs(normalOS);
                 blend /= (blend.x + blend.y + blend.z);
 
-                // --- [핵심 변경] BaseMap Triplanar 적용 ---
-                // 기존의 input.uv 대신, 스케일이 보정된 posOS 좌표를 바탕으로 3방향 UV 생성
-                float2 baseUvX = posOS.zy * _BaseMap_ST.xy + _BaseMap_ST.zw;
-                float2 baseUvY = posOS.xz * _BaseMap_ST.xy + _BaseMap_ST.zw;
-                float2 baseUvZ = posOS.xy * _BaseMap_ST.xy + _BaseMap_ST.zw;
-
-                // 3방향에서 BaseMap 샘플링
-                half4 albedoX = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, baseUvX);
-                half4 albedoY = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, baseUvY);
-                half4 albedoZ = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, baseUvZ);
-
-                // 가중치를 곱해서 자연스럽게 혼합
-                half4 albedo = (albedoX * blend.x + albedoY * blend.y + albedoZ * blend.z) * _BaseColor;
-                // ----------------------------------------
+                half4 albedo = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv) * _BaseColor;
                 
+                // 깨져있던 곱하기(*) 기호 복구
                 float2 bumpUvX = posOS.zy * _BumpMap_ST.xy + _BumpMap_ST.zw;
                 float2 bumpUvY = posOS.xz * _BumpMap_ST.xy + _BumpMap_ST.zw;
                 float2 bumpUvZ = posOS.xy * _BumpMap_ST.xy + _BumpMap_ST.zw;
@@ -174,26 +182,15 @@ Shader "Custom/ClayShader"
                     inputData.shadowCoord = float4(0, 0, 0, 0);
                 #endif
 
+                inputData.bakedGI = SampleSH(normalWS);
+
                 SurfaceData surfaceData = (SurfaceData)0;
                 surfaceData.albedo = albedo.rgb;
                 surfaceData.metallic = _Metallic;
                 surfaceData.smoothness = _Smoothness;
                 surfaceData.alpha = albedo.a;
 
-                #if defined(_MAIN_LIGHT_SHADOWS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE) || defined(_MAIN_LIGHT_SHADOWS_SCREEN)
-                    Light mainLight = GetMainLight(inputData.shadowCoord);
-                #else
-                    Light mainLight = GetMainLight();
-                #endif
-
-                float NdotL = dot(normalWS, mainLight.direction);
-                float wrapLighting = saturate(NdotL * 0.5 + 0.5);
-                float shadow = mainLight.shadowAttenuation;
-                
-                half3 softGlow = albedo.rgb * mainLight.color * wrapLighting * _ClaySoftness;
-                surfaceData.emission = softGlow * shadow;
-                
-                return UniversalFragmentPBR(inputData, surfaceData);
+                return CustomClayLighting(inputData, surfaceData, _ShadowStrength, _ShadowTint.rgb);
             }
             ENDHLSL
         }
@@ -222,31 +219,11 @@ Shader "Custom/ClayShader"
                 float4 positionHCS  : SV_POSITION;
             };
 
-            CBUFFER_START(UnityPerMaterial)
-                float _Displacement;
-                float _NoiseScale;
-            CBUFFER_END
-            
-            TEXTURE2D(_NoiseTex);   SAMPLER(sampler_NoiseTex);
-
             float3 _LightDirection;
 
             Varyings vert(Attributes input)
             {
                 Varyings output;
-                
-                float3 objScale = max(float3(
-                    length(GetObjectToWorldMatrix()[0].xyz),
-                    length(GetObjectToWorldMatrix()[1].xyz),
-                    length(GetObjectToWorldMatrix()[2].xyz)
-                ), 0.0001);
-                
-                float3 scaledPos = input.positionOS.xyz * objScale;
-
-                float2 noiseUV = (scaledPos.xy * 0.7 + scaledPos.zz * 0.7) * _NoiseScale;
-                float noiseVal = SAMPLE_TEXTURE2D_LOD(_NoiseTex, sampler_NoiseTex, noiseUV, 0).r;
-                
-                input.positionOS.xyz += (input.normalOS / objScale) * (noiseVal - 0.5) * _Displacement;
                 
                 float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
                 float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
@@ -280,7 +257,6 @@ Shader "Custom/ClayShader"
             struct Attributes
             {
                 float4 positionOS   : POSITION;
-                float3 normalOS     : NORMAL;
             };
 
             struct Varyings
@@ -288,30 +264,9 @@ Shader "Custom/ClayShader"
                 float4 positionHCS  : SV_POSITION;
             };
 
-            CBUFFER_START(UnityPerMaterial)
-                float _Displacement;
-                float _NoiseScale;
-            CBUFFER_END
-
-            TEXTURE2D(_NoiseTex);   SAMPLER(sampler_NoiseTex);
-
             Varyings vert(Attributes input)
             {
                 Varyings output;
-                
-                float3 objScale = max(float3(
-                    length(GetObjectToWorldMatrix()[0].xyz),
-                    length(GetObjectToWorldMatrix()[1].xyz),
-                    length(GetObjectToWorldMatrix()[2].xyz)
-                ), 0.0001);
-                
-                float3 scaledPos = input.positionOS.xyz * objScale;
-
-                float2 noiseUV = (scaledPos.xy * 0.7 + scaledPos.zz * 0.7) * _NoiseScale;
-                float noiseVal = SAMPLE_TEXTURE2D_LOD(_NoiseTex, sampler_NoiseTex, noiseUV, 0).r;
-                
-                input.positionOS.xyz += (input.normalOS / objScale) * (noiseVal - 0.5) * _Displacement;
-
                 output.positionHCS = TransformObjectToHClip(input.positionOS.xyz);
                 return output;
             }

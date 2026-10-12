@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
 using System.Collections;
+using System.Collections.Generic;
 using DG.Tweening;
 
 namespace MatchDefense.Defense
@@ -39,6 +40,7 @@ namespace MatchDefense.Defense
 
         public static bool IsDraggingUnit { get; private set; }
 
+        public readonly List<Unit> SpawnedUnits = new();
         private UnitData currentDragUnit;
         private GameObject previewInstance;
         private UnitBoard activeBoard;
@@ -162,7 +164,7 @@ namespace MatchDefense.Defense
                 UnitBoard.Instance.ToggleGridVisibility(true);
 
                 Unit unitComp = currentDragUnit.unitPrefab.GetComponent<Unit>();
-                float range = unitComp != null ? unitComp.attackRange : 2f;
+                float range = unitComp != null ? unitComp.range : 2f;
                 UnitBoard.Instance.SetHoverRange(range);
             }
 
@@ -197,7 +199,19 @@ namespace MatchDefense.Defense
                     {
                         targetPos = snappedPos;
                         spawnPos = snappedPos;
-                        canSpawn = true;
+                        Vector2Int targetCell = board.WorldToCell(snappedPos);
+                        bool isOccupied = false;
+
+                        foreach (var existingUnit in SpawnedUnits)
+                        {
+                            if (existingUnit != null && existingUnit.gameObject != previewInstance && existingUnit.GridPos == targetCell)
+                            {
+                                isOccupied = true;
+                                break;
+                            }
+                        }
+
+                        canSpawn = !isOccupied;
                     }
                     else
                     {
@@ -266,6 +280,9 @@ namespace MatchDefense.Defense
             canSpawn = false;
             currentDragUnit = null;
         }
+
+        public void AddSpawnedUnit(Unit unit) => SpawnedUnits.Add(unit);
+        public void RemoveSpawnedUnit(Unit unit) => SpawnedUnits.Remove(unit);
         #endregion
 
         #region Visuals

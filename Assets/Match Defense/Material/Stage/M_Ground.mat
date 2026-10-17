@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: M_Ground
-  m_Shader: {fileID: 4800000, guid: 832f7a9e1053a1a44a22bf8f69220889, type: 3}
+  m_Shader: {fileID: 4800000, guid: 8209e538268c25841825c10075272cfa, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -29,9 +29,9 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
-        m_Texture: {fileID: 2800000, guid: 268b459858782b947afb4f51bf6eecfd, type: 3}
-        m_Scale: {x: 0.1, y: 0.06}
-        m_Offset: {x: -0.69, y: 0}
+        m_Texture: {fileID: 2800000, guid: 8abe4a17090e6604e9fed07b3d933c45, type: 3}
+        m_Scale: {x: 0.2, y: 0.2}
+        m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -91,7 +91,8 @@ Material:
     - _AlphaToMask: 0
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
-    - _BumpScale: 0.33
+    - _BumpScale: 0.75
+    - _CavityStrength: 0.47
     - _ClaySoftness: 0.3
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
@@ -106,7 +107,7 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _Metallic: 0.078
+    - _Metallic: 0.104
     - _NoiseScale: 0.1
     - _OcclusionStrength: 1
     - _Parallax: 0.005
@@ -115,7 +116,7 @@ Material:
     - _ShadowEdgeSoftness: 1
     - _ShadowStrength: 0.503
     - _ShadowWrap: 2
-    - _Smoothness: 0.264
+    - _Smoothness: 0.373
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SpecularIntensity: 0.1
@@ -126,7 +127,7 @@ Material:
     - _XRMotionVectorsPass: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.6698113, g: 0.5450115, b: 0.42021182, a: 1}
+    - _BaseColor: {r: 0.38679248, g: 0.35746545, b: 0.3302332, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _ShadowTint: {r: 0.31132078, g: 0.15357779, b: 0.0014684978, a: 1}

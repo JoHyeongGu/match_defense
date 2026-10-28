@@ -91,7 +91,7 @@ Material:
     - _AlphaToMask: 0
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
-    - _BumpScale: 0.21
+    - _BumpScale: 0.26
     - _ClaySoftness: 0.456
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
@@ -117,7 +117,7 @@ Material:
     - _ShadowEdgeSoftness: 1
     - _ShadowStrength: 0.891
     - _ShadowWrap: 2
-    - _Smoothness: 0.1
+    - _Smoothness: 0.151
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SpecularIntensity: 0.1

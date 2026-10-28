@@ -15,14 +15,16 @@ namespace MatchDefense.Defense
         public GameObject unitPrefab;
         public float chargePerItem = 0.2f;
         public GameObject dragArea;
-        public Slider chargeSlider;
-        public Image filledImage;
+        public Image sliderFilled;
+        public Image thumbFilled;
         public TextMeshProUGUI unitCountText;
         public RectTransform bounceIcon;
+        public Color sliderColor = Color.yellow;
 
         [HideInInspector] public float charge;
         [HideInInspector] public int availableUnits;
         [HideInInspector] public bool animating;
+        [HideInInspector] public Vector3 unitStoreScale = Vector3.one;
     }
 
     public class UnitSpawnManager : MonoBehaviour
@@ -55,8 +57,8 @@ namespace MatchDefense.Defense
 
             foreach (var unit in units)
             {
-                if (unit.chargeSlider != null) unit.chargeSlider.value = 0f;
-                if (unit.filledImage != null) unit.filledImage.fillAmount = 0f;
+                if (unit.sliderFilled != null) unit.sliderFilled.fillAmount = 0f;
+                if (unit.thumbFilled != null) unit.thumbFilled.fillAmount = 0f;
                 UpdateUIText(unit);
 
                 if (unit.dragArea != null)
@@ -76,6 +78,8 @@ namespace MatchDefense.Defense
                     endDrag.callback.AddListener((data) => OnEndDragUnit(unit, (PointerEventData)data));
                     trigger.triggers.Add(endDrag);
                 }
+                unit.sliderFilled.color = unit.sliderColor;
+                unit.unitStoreScale = unit.bounceIcon.localScale;
             }
         }
         #endregion
@@ -101,13 +105,13 @@ namespace MatchDefense.Defense
             if (unit.bounceIcon != null)
             {
                 unit.bounceIcon.DOKill(true);
-                unit.bounceIcon.localScale = Vector3.one;
+                unit.bounceIcon.localScale = unit.unitStoreScale;
                 Sequence bounceSeq = DOTween.Sequence();
 
                 for (int i = 0; i < matchCount; i++)
                 {
-                    bounceSeq.Append(unit.bounceIcon.DOScale(Vector3.one * 1.3f, 0.08f).SetEase(Ease.OutQuad));
-                    bounceSeq.Append(unit.bounceIcon.DOScale(Vector3.one, 0.08f).SetEase(Ease.InQuad));
+                    bounceSeq.Append(unit.bounceIcon.DOScale(unit.unitStoreScale * 1.3f, 0.08f).SetEase(Ease.OutQuad));
+                    bounceSeq.Append(unit.bounceIcon.DOScale(unit.unitStoreScale, 0.08f).SetEase(Ease.InQuad));
                 }
             }
 
@@ -115,8 +119,8 @@ namespace MatchDefense.Defense
 
             if (unit.charge >= 1f)
             {
-                if (unit.chargeSlider != null) unit.chargeSlider.DOValue(1f, 0.2f);
-                if (unit.availableUnits == 0 && unit.filledImage != null) unit.filledImage.DOFillAmount(1f, 0.2f);
+                if (unit.sliderFilled != null) unit.sliderFilled.DOFillAmount(1f, 0.2f);
+                if (unit.availableUnits == 0 && unit.thumbFilled != null) unit.thumbFilled.DOFillAmount(1f, 0.2f);
 
                 yield return new WaitForSeconds(0.2f);
 
@@ -128,17 +132,17 @@ namespace MatchDefense.Defense
 
                 UpdateUIText(unit);
 
-                if (unit.filledImage != null) unit.filledImage.fillAmount = 1f;
-                if (unit.chargeSlider != null) unit.chargeSlider.DOValue(0f, 0.2f).SetEase(Ease.InOutQuad);
+                if (unit.thumbFilled != null) unit.thumbFilled.fillAmount = 1f;
+                if (unit.sliderFilled != null) unit.sliderFilled.DOFillAmount(0f, 0.2f).SetEase(Ease.InOutQuad);
 
                 yield return new WaitForSeconds(0.2f);
             }
 
-            if (unit.chargeSlider != null) unit.chargeSlider.DOValue(unit.charge, 0.2f);
+            if (unit.sliderFilled != null) unit.sliderFilled.DOFillAmount(unit.charge, 0.2f);
 
-            if (unit.availableUnits == 0 && unit.filledImage != null)
+            if (unit.availableUnits == 0 && unit.thumbFilled != null)
             {
-                unit.filledImage.DOFillAmount(unit.charge, 0.2f);
+                unit.thumbFilled.DOFillAmount(unit.charge, 0.2f);
             }
 
             yield return new WaitForSeconds(0.2f);
@@ -270,9 +274,9 @@ namespace MatchDefense.Defense
                 currentDragUnit.availableUnits--;
                 UpdateUIText(currentDragUnit);
 
-                if (currentDragUnit.availableUnits == 0 && currentDragUnit.filledImage != null)
+                if (currentDragUnit.availableUnits == 0 && currentDragUnit.thumbFilled != null)
                 {
-                    currentDragUnit.filledImage.DOFillAmount(currentDragUnit.charge, 0.3f).SetEase(Ease.OutQuad);
+                    currentDragUnit.thumbFilled.DOFillAmount(currentDragUnit.charge, 0.3f).SetEase(Ease.OutQuad);
                 }
             }
 

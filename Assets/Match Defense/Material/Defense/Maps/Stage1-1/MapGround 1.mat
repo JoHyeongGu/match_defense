@@ -29,7 +29,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
         m_Texture: {fileID: 2800000, guid: 268b459858782b947afb4f51bf6eecfd, type: 3}
-        m_Scale: {x: 0.1, y: 0.1}
+        m_Scale: {x: 0.05, y: 0.05}
         m_Offset: {x: 0.07, y: 0}
     - _MainTex:
         m_Texture: {fileID: 0}
@@ -41,15 +41,17 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BumpScale: 0.24
+    - _BumpScale: 0.13
     - _ClaySoftness: 1
     - _Displacement: 0
     - _Glossiness: 0.1
-    - _Metallic: 0
+    - _Metallic: 0.837
     - _NoiseScale: 0.1
-    - _Smoothness: 0.36
+    - _ShadowStrength: 0.6
+    - _Smoothness: 0.658
     m_Colors:
-    - _BaseColor: {r: 0.38679248, g: 0.21940595, b: 0.11129405, a: 1}
+    - _BaseColor: {r: 0.6415094, g: 0.6384834, b: 0.6384834, a: 1}
     - _Color: {r: 0.9, g: 0.6, b: 0.5, a: 1}
+    - _ShadowTint: {r: 0.5, g: 0.39999998, b: 0.29999998, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

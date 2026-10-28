@@ -45,9 +45,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69822aca37492924386a4f72b598d8b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MatchDefense.Defense.Enemy
+  maxHP: 1
   speed: 1
-  HP: 3
-  animationIndex: 0
+  animIndex: 0
   transitionDuration: 0.1
   meshRenderer: {fileID: 7297054403278703831}
 --- !u!1001 &8805924904060571704

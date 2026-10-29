@@ -20,16 +20,14 @@ Shader "Custom/ClayPath"
 
     SubShader
     {
-        // [핵심 변경] Geometry+1: 바닥(2000) 직후에 렌더링되게 하여 캐릭터(2000)가 그 위에 렌더링되도록 함
         Tags { "RenderType"="Transparent" "Queue"="Geometry+1" "RenderPipeline"="UniversalPipeline" }
         LOD 300
+        
         Blend SrcAlpha OneMinusSrcAlpha
         
-        // 깊이 쓰기 끄기, 깊이 테스트 켜기
         ZWrite Off
         ZTest LEqual
         
-        // 바닥에서 Y를 띄우지 않고 깊이(Depth)만 살짝 앞으로 당겨서 Z-Fighting(깜빡임) 방지
         Offset -1, -1 
 
         Pass
@@ -42,10 +40,8 @@ Shader "Custom/ClayPath"
             #pragma vertex vert
             #pragma fragment frag
 
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_SCREEN
-            #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -95,8 +91,9 @@ Shader "Custom/ClayPath"
                 float3 dPy = ddy(input.positionWS);
 
                 float3 B = dPx * dV.x + dPy * dV.y; 
-                if (dot(B, B) < 0.0001) B = float3(1, 0, 0); 
-                else B = normalize(B);
+                
+                float lenB = length(B);
+                B = (lenB > 0.001) ? (B / lenB) : float3(1, 0, 0);
 
                 float3 N = float3(0, 1, 0);
 
@@ -117,6 +114,8 @@ Shader "Custom/ClayPath"
                 inputData.normalWS = finalNormalWS; 
                 inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
                 
+                inputData.bakedGI = SampleSH(finalNormalWS);
+
                 #if defined(_MAIN_LIGHT_SHADOWS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE) || defined(_MAIN_LIGHT_SHADOWS_SCREEN)
                     inputData.shadowCoord = TransformWorldToShadowCoord(input.positionWS);
                 #else

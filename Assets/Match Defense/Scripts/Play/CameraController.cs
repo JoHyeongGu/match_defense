@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
+using DG.Tweening;
 #if !UNITY_EDITOR
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 using TouchPhase = UnityEngine.InputSystem.TouchPhase;
@@ -72,6 +73,27 @@ namespace MatchDefense
             ApplyTransform();
         }
 
+        #region Public API
+        // 줌, 회전, XY 좌표를 최대로 축소(초기화)하면서 Z 위치만 지정된 곳으로 부드럽게 이동
+        public void ResetAndMoveZ(float targetZ, float duration)
+        {
+            // 줌(Scale) 최대 축소 상태(maxScale)로 복구
+            DOTween.To(() => _targetScale, x => _targetScale = x, maxScale, duration).SetEase(Ease.OutQuad);
+
+            // 회전값 원래대로 복구
+            DOTween.To(() => _targetYaw, x => _targetYaw = x, _originYaw, duration).SetEase(Ease.OutQuad);
+            DOTween.To(() => _targetPitch, x => _targetPitch = x, _originPitch, duration).SetEase(Ease.OutQuad);
+
+            // CheckResetCondition에서 엉뚱한 곳으로 튀지 않게 원본 Z값도 목표 Z값으로 동기화
+            DOTween.To(() => _originPos.z, x => _originPos.z = x, targetZ, duration).SetEase(Ease.OutQuad);
+
+            // 카메라 위치 X, Y 원상 복구 및 Z축 이동
+            DOTween.To(() => _targetPos.x, x => _targetPos.x = x, _originPos.x, duration).SetEase(Ease.OutQuad);
+            DOTween.To(() => _targetPos.y, x => _targetPos.y = x, _originPos.y, duration).SetEase(Ease.OutQuad);
+            DOTween.To(() => _targetPos.z, x => _targetPos.z = x, targetZ, duration).SetEase(Ease.OutQuad);
+        }
+        #endregion
+
         #region Editor Input
 #if UNITY_EDITOR
         private void HandleEditorInput()
@@ -128,7 +150,6 @@ namespace MatchDefense
                 Touch t = Touch.activeTouches[0];
                 if (t.phase == TouchPhase.Moved)
                 {
-                    // 기기 해상도에 상관없이 일정한 이동 속도를 내도록 화면 높이로 정규화
                     Vector2 normalizedDelta = (t.delta / Screen.height) * 1000f;
                     MovePivot(normalizedDelta);
                 }
@@ -146,10 +167,8 @@ namespace MatchDefense
                 float prevDist = Vector2.Distance(t0Prev, t1Prev);
                 float currDist = Vector2.Distance(t0.screenPosition, t1.screenPosition);
                 
-                // 픽셀 거리를 화면 높이로 나누어 정규화된 줌 비율 산출
                 float deltaDist = (currDist - prevDist) / Screen.height;
 
-                // 데드존(Deadzone) 설정: 미세한 손떨림에는 줌이 반응하지 않도록 차단
                 if (Mathf.Abs(deltaDist) > 0.005f)
                 {
                     _targetScale = Mathf.Clamp(_targetScale - (deltaDist * 2.0f), minScale, maxScale);
@@ -158,17 +177,13 @@ namespace MatchDefense
                 // --- 2. 회전 및 상하 틸트 ---
                 if (isZoomedIn)
                 {
-                    // 비틀기(Twist) 각도 계산: 이전 프레임의 두 손가락 각도와 현재 프레임의 각도 차이 도출
                     Vector2 prevDir = t1Prev - t0Prev;
                     Vector2 currDir = t1.screenPosition - t0.screenPosition;
                     float twistAngle = Vector2.SignedAngle(prevDir, currDir);
 
-                    // 상하 틸트(Pitch): 두 손가락이 동시에 위아래로 움직인 평균값 (마찬가지로 해상도 정규화)
                     float avgDeltaY = (t0.delta.y + t1.delta.y) * 0.5f;
                     float tiltDelta = (avgDeltaY / Screen.height) * 1000f;
 
-                    // RotatePivot 함수가 예상하는 delta 값의 스케일에 맞게 보정하여 전달
-                    // X축은 좌우 회전(Yaw), Y축은 상하 틸트(Pitch)
                     Vector2 rotDelta = new Vector2(twistAngle * 3f, tiltDelta);
                     RotatePivot(rotDelta);
                 }
@@ -187,7 +202,6 @@ namespace MatchDefense
             Vector3 move = (right * -delta.x + forward * -delta.y) * (moveSpeed * _targetScale);
             _targetPos += move;
 
-            // [핵심 변경] 월드 좌표계 기준으로 무조건 고정된 한계선(Limit) 안에서만 놀도록 강제 클램프
             _targetPos.x = Mathf.Clamp(_targetPos.x, horizontalLimit.x, horizontalLimit.y);
             _targetPos.z = Mathf.Clamp(_targetPos.z, verticalLimit.x, verticalLimit.y);
         }

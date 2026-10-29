@@ -1,6 +1,5 @@
 using DG.Tweening;
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace MatchDefense.Defense
@@ -9,17 +8,14 @@ namespace MatchDefense.Defense
     {
         [Header("Spawn Settings")]
         [SerializeField] private GameObject enemyPrefab;
-        [SerializeField] private float maxInterval;
-        [SerializeField] private float minInterval;
 
         public static EnemySpawner Instance { get; private set; }
         public readonly List<Enemy> ActiveEnemies = new List<Enemy>();
-        
+
         public float TotalPathLength { get; private set; }
         public Vector3[] PathWaypoints { get; private set; }
 
         private Vector3 spawnPoint;
-        private Coroutine spawnRoutine;
 
         private void Awake()
         {
@@ -35,28 +31,14 @@ namespace MatchDefense.Defense
             if (PathWaypoints != null && PathWaypoints.Length > 0)
             {
                 spawnPoint = PathWaypoints[0];
-                spawnRoutine = StartCoroutine(SpawnRoutine());
             }
-        }
-
-        private void OnDestroy()
-        {
-            if (spawnRoutine != null) StopCoroutine(spawnRoutine);
         }
 
         #region Spawn
-        private IEnumerator SpawnRoutine()
+        public void SpawnEnemy()
         {
-            while (true)
-            {
-                SpawnEnemy();
-                float interval = Random.Range(minInterval, maxInterval);
-                yield return new WaitForSeconds(interval);
-            }
-        }
+            if (PathWaypoints == null || PathWaypoints.Length == 0) return;
 
-        private void SpawnEnemy()
-        {
             GameObject obj = Instantiate(enemyPrefab, spawnPoint, Quaternion.identity);
             Enemy enemy = obj.GetComponent<Enemy>();
 

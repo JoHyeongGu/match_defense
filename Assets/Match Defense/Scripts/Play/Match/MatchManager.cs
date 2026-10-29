@@ -26,6 +26,9 @@ namespace MatchDefense.Match
         [Header("<color=yellow>Hint System</color>")]
         [SerializeField] private float hintDelay = 3f;
 
+        // [추가됨] 웨이브 중 매치 가능 여부 제어 플래그
+        public bool IsMatchActive { get; private set; } = true;
+
         private int selectedX = -1;
         private int selectedY = -1;
         private bool isProcessing;
@@ -48,9 +51,15 @@ namespace MatchDefense.Match
         private Sequence hintSeq;
         private Vector2 hintOriginalPos;
 
+        // 싱글톤 인스턴스 (WaveManager에서 접근하기 쉽게 설정)
+        public static MatchManager Instance { get; private set; }
+
         #region Unity
         private void Awake()
         {
+            if (Instance == null) Instance = this;
+            else Destroy(gameObject);
+
             DOTween.Init(true, true, LogBehaviour.Default).SetCapacity(500, 50);
             for (int i = 0; i < 20; i++) matchGroups.Add(new List<MatchItem>(16));
 
@@ -67,6 +76,9 @@ namespace MatchDefense.Match
         private void Update()
         {
             if (ProgramManager.Instance != null && ProgramManager.Instance.IsLoading) return;
+
+            // [추가됨] 매치가 비활성화 상태면 입력 처리 및 힌트 시스템 중단
+            if (!IsMatchActive) return;
 
             HandleInput();
 
@@ -87,6 +99,20 @@ namespace MatchDefense.Match
         private void OnValidate()
         {
             CalculateTotalWeight();
+        }
+        #endregion
+
+        #region Public API
+        // [추가됨] 웨이브 매니저에서 호출할 입력 제어 함수
+        public void SetMatchActive(bool isActive)
+        {
+            IsMatchActive = isActive;
+
+            if (!isActive)
+            {
+                DeselectNode();
+                ResetHint();
+            }
         }
         #endregion
 

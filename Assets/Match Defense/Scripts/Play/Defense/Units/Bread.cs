@@ -14,7 +14,7 @@ namespace MatchDefense.Defense.Units
             {
                 animator.SetTrigger("Attack");
             }
-            DOVirtual.DelayedCall(0.5f, () =>
+            DOVirtual.DelayedCall(0.3f, () =>
             {
                 if (this != null && target != null && target.IsAlive)
                 {

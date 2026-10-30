@@ -756,7 +756,9 @@ namespace MatchDefense.Match
         #region Haptic & Audio
         private void ForceVibrationPermissionDummy()
         {
+#if UNITY_ANDROID || UNITY_IOS
             Handheld.Vibrate();
+#endif
         }
 
         private IEnumerator DelayedHapticRoutine(float delayTime, int matchCount)

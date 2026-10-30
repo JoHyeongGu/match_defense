@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
 using System.Threading.Tasks;
+using System.Collections;
 
 namespace MatchDefense.Defense
 {
@@ -160,11 +161,17 @@ namespace MatchDefense.Defense
         {
             pathTween?.Pause();
 
-            // 죽는 애니메이션이 나올 때 UI 숨김
             if (hpBarInstance != null) hpBarInstance.gameObject.SetActive(false);
             isHpBarActive = false;
 
-            await SetAnimation(State.Die);
+            StartCoroutine(DieRoutine());
+        }
+
+        private IEnumerator DieRoutine()
+        {
+            float delay = SetAnimation(State.Die);
+            if (delay > 0f) yield return new WaitForSeconds(delay);
+
             transform.DOScale(0f, 0.5f).SetEase(Ease.InBack).OnComplete(() =>
             {
                 transform.DOKill();
@@ -180,10 +187,10 @@ namespace MatchDefense.Defense
         #endregion
 
         #region Animation
-        private async Task SetAnimation(State state)
+        private float SetAnimation(State state)
         {
             int targetAnim = (int)state;
-            if (animIndex == targetAnim || bodyRenderer == null) return;
+            if (animIndex == targetAnim || bodyRenderer == null) return 0f;
 
             animIndex = targetAnim;
 
@@ -198,8 +205,7 @@ namespace MatchDefense.Defense
 
             bodyRenderer.SetPropertyBlock(propBlock);
 
-            float duration = GetAnimDuration(targetAnim);
-            if (duration > 0f) await Task.Delay((int)(duration * 1000));
+            return GetAnimDuration(targetAnim);
         }
 
         private float GetAnimDuration(int index)

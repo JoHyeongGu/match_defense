@@ -112,7 +112,7 @@ namespace MatchDefense.Defense
             yield return new WaitUntil(() => enemySpawner.ActiveEnemies.Count == 0);
 
             isWaveActive = false;
-            waveCountTxt.text = $"{currentWave + 1} WAVE";
+            waveCountTxt.text = $"WAVE {currentWave + 1}";
             waveStartButton.gameObject.SetActive(true);
             speedToggleButton.gameObject.SetActive(false);
             Time.timeScale = 1.0f;

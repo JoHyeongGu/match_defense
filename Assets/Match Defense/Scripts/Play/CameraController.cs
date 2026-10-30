@@ -2,10 +2,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
 using DG.Tweening;
-#if !UNITY_EDITOR
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 using TouchPhase = UnityEngine.InputSystem.TouchPhase;
-#endif
 
 namespace MatchDefense
 {
@@ -29,23 +27,21 @@ namespace MatchDefense
         [Header("<color=yellow>Smoothing</color>")]
         [SerializeField] private float smoothTime = 0.1f;
 
-        // 원본 상태 기억
         private Vector3 _originPos;
         private float _originYaw;
         private float _originPitch;
 
-        // 목표 상태
         private Vector3 _targetPos;
         private float _targetYaw;
         private float _targetPitch;
         private float _targetScale;
 
-        // 보간용 캐시
         private Vector3 _posVel;
         private float _yawVel;
         private float _pitchVel;
         private float _scaleVel;
 
+        #region Unity
         private void Awake()
         {
             _originPos = transform.position;
@@ -64,39 +60,34 @@ namespace MatchDefense
 
         private void LateUpdate()
         {
-#if UNITY_EDITOR
-            HandleEditorInput();
-#else
-            HandleMobileInput();
-#endif
+            if (Touch.activeTouches.Count > 0)
+            {
+                HandleMobileInput();
+            }
+            else
+            {
+                HandleMouseInput();
+            }
             CheckResetCondition();
             ApplyTransform();
         }
+        #endregion
 
-        #region Public API
-        // 줌, 회전, XY 좌표를 최대로 축소(초기화)하면서 Z 위치만 지정된 곳으로 부드럽게 이동
+        #region API
         public void ResetAndMoveZ(float targetZ, float duration)
         {
-            // 줌(Scale) 최대 축소 상태(maxScale)로 복구
             DOTween.To(() => _targetScale, x => _targetScale = x, maxScale, duration).SetEase(Ease.OutQuad);
-
-            // 회전값 원래대로 복구
             DOTween.To(() => _targetYaw, x => _targetYaw = x, _originYaw, duration).SetEase(Ease.OutQuad);
             DOTween.To(() => _targetPitch, x => _targetPitch = x, _originPitch, duration).SetEase(Ease.OutQuad);
-
-            // CheckResetCondition에서 엉뚱한 곳으로 튀지 않게 원본 Z값도 목표 Z값으로 동기화
             DOTween.To(() => _originPos.z, x => _originPos.z = x, targetZ, duration).SetEase(Ease.OutQuad);
-
-            // 카메라 위치 X, Y 원상 복구 및 Z축 이동
             DOTween.To(() => _targetPos.x, x => _targetPos.x = x, _originPos.x, duration).SetEase(Ease.OutQuad);
             DOTween.To(() => _targetPos.y, x => _targetPos.y = x, _originPos.y, duration).SetEase(Ease.OutQuad);
             DOTween.To(() => _targetPos.z, x => _targetPos.z = x, targetZ, duration).SetEase(Ease.OutQuad);
         }
         #endregion
 
-        #region Editor Input
-#if UNITY_EDITOR
-        private void HandleEditorInput()
+        #region Input
+        private void HandleMouseInput()
         {
             if (Defense.UnitSpawnManager.IsDraggingUnit) return;
             if (Mouse.current == null) return;
@@ -126,11 +117,7 @@ namespace MatchDefense
                 RotatePivot(delta);
             }
         }
-#endif
-        #endregion
 
-        #region Mobile Input
-#if !UNITY_EDITOR
         private void HandleMobileInput()
         {
             if (Defense.UnitSpawnManager.IsDraggingUnit) return;
@@ -143,8 +130,6 @@ namespace MatchDefense
                 return;
 
             bool isZoomedIn = _targetScale < maxScale - 0.02f;
-
-            // 1손가락 이동 (Pan)
             if (touchCount == 1 && isZoomedIn)
             {
                 Touch t = Touch.activeTouches[0];
@@ -154,7 +139,6 @@ namespace MatchDefense
                     MovePivot(normalizedDelta);
                 }
             }
-            // 2손가락 줌(Pinch) & 회전(Twist) & 상하 틸트
             else if (touchCount == 2)
             {
                 Touch t0 = Touch.activeTouches[0];
@@ -163,18 +147,15 @@ namespace MatchDefense
                 Vector2 t0Prev = t0.screenPosition - t0.delta;
                 Vector2 t1Prev = t1.screenPosition - t1.delta;
 
-                // --- 1. 줌 (Pinch) ---
                 float prevDist = Vector2.Distance(t0Prev, t1Prev);
                 float currDist = Vector2.Distance(t0.screenPosition, t1.screenPosition);
-                
+
                 float deltaDist = (currDist - prevDist) / Screen.height;
 
                 if (Mathf.Abs(deltaDist) > 0.005f)
                 {
                     _targetScale = Mathf.Clamp(_targetScale - (deltaDist * 2.0f), minScale, maxScale);
                 }
-
-                // --- 2. 회전 및 상하 틸트 ---
                 if (isZoomedIn)
                 {
                     Vector2 prevDir = t1Prev - t0Prev;
@@ -189,10 +170,9 @@ namespace MatchDefense
                 }
             }
         }
-#endif
         #endregion
 
-        #region Core Transform
+        #region Transform
         private void MovePivot(Vector2 delta)
         {
             Quaternion yawRot = Quaternion.Euler(0f, _targetYaw, 0f);

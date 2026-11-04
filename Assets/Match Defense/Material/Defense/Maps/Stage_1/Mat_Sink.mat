@@ -45,7 +45,7 @@ Material:
     - _ClaySoftness: 1
     - _Displacement: 0
     - _Glossiness: 0.1
-    - _Metallic: 0.587
+    - _Metallic: 0.702
     - _NoiseScale: 0.1
     - _ShadowStrength: 1
     - _Smoothness: 0.724

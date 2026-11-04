@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
-using System.Threading.Tasks;
+using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 
@@ -104,23 +104,25 @@ namespace MatchDefense.Defense
         }
         #endregion
 
+
         #region Attack
         protected virtual void Attack(Character target) => target.Attacked(damage);
 
-        private async void ExecuteAttack()
+        private void ExecuteAttack()
+        {
+            StartCoroutine(AttackRoutine());
+        }
+
+        private IEnumerator AttackRoutine()
         {
             for (int i = 0; i < atkCount; i++)
             {
-                if (this == null) return;
+                if (this == null) yield break;
 
-                // 타격 간격이 있는 다단 히트일 경우에만 재탐색
                 if (i > 0 && atkInterval > 0f)
                 {
                     if (!FindTargets()) break;
                 }
-
-                // 가장 가까운 타겟을 바라봄
-                if (targets.Count > 0) LookAt(targets[0]);
 
                 foreach (var target in targets)
                 {
@@ -128,9 +130,8 @@ namespace MatchDefense.Defense
                     Attack(target);
                 }
 
-                // 다음 타격까지 대기
                 if (atkInterval > 0f && i < atkCount - 1)
-                    await Task.Delay((int)(atkInterval * 1000));
+                    yield return new WaitForSeconds(atkInterval);
             }
         }
 

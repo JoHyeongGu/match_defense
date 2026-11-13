@@ -117,8 +117,8 @@ Material:
     - _BlendModePreserveSpecular: 1
     - _BumpScale: 0.93
     - _CarveDarkness: 0.393
-    - _CarveDepth: 0.985
-    - _CenterAO: 0.53
+    - _CarveDepth: 0.73
+    - _CenterAO: 0.317
     - _ClaySoftness: 0.3
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
@@ -153,7 +153,7 @@ Material:
     - _XRMotionVectorsPass: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.8867924, g: 0.8867924, b: 0.8867924, a: 1}
+    - _BaseColor: {r: 0.7226771, g: 0.7315682, b: 0.754717, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}

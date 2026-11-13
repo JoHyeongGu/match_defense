@@ -7,21 +7,28 @@ namespace MatchDefense.Lobby
 {
     public class LobbyManager : MonoBehaviour
     {
-        [Header("<color=yellow> References </color>")]
+        [Header("<color=yellow>UI</color>")]
         [SerializeField] private PanelRenderer panelRenderer;
-
-        [Header("<color=yellow> UI : Pages </color>")]
         [SerializeField] private VisualTreeAsset storePageUxml;
         [SerializeField] private VisualTreeAsset inventoryPageUxml;
         [SerializeField] private VisualTreeAsset questPageUxml;
+        private VisualElement _rootElement;
+        private Button _playButton;
+        private Button _skipButton;
 
-        [Header("<color=yellow> Stage Background </color>")]
+        [Header("<color=yellow>Animation</color>")]
         [SerializeField] private Animator stageAnimator;
 
-        private Button _playButton;
-        private VisualElement _rootElement;
+        [Header("<color=yellow>Stage Rotate</color>")]
+        [SerializeField] private Transform objectToRotate;
+        [SerializeField] private Transform[] pageTransforms;
+        private PageScroll m_PageScroll;
 
-        private void OnEnable() => InitializeUI();
+        private void OnEnable()
+        {
+            InitializeUI();
+        }
+
         private void OnDisable() => DestroyUI();
 
         private void Start()
@@ -36,7 +43,9 @@ namespace MatchDefense.Lobby
             ProgramManager.Instance.FadeScreen(off: false, duration: 1f);
         }
 
+
         #region UI
+
         private void InitializeUI()
         {
             panelRenderer.RegisterUIReloadCallback(OnUIReload);
@@ -52,7 +61,11 @@ namespace MatchDefense.Lobby
         {
             _rootElement = rootElement;
             _rootElement.style.opacity = 1f;
+
             _playButton = rootElement.Q<Button>("play-btn");
+            _skipButton = rootElement.Q<Button>("skip-btn");
+            m_PageScroll = rootElement.Q<PageScroll>("sub-stage-scroll");
+
             UnbindEvents();
             BindEvents();
             InitPages(rootElement);
@@ -62,38 +75,30 @@ namespace MatchDefense.Lobby
         {
             if (_playButton != null)
                 _playButton.clicked += OnPlayClicked;
+            if (_skipButton != null)
+                _skipButton.clicked += OnSkipClicked;
+
+            if (m_PageScroll != null)
+            {
+                m_PageScroll.OnScrollProgressChanged += HandleScrollProgress;
+                m_PageScroll.OnPageSettled += HandlePageSettled;
+            }
         }
 
         private void UnbindEvents()
         {
             if (_playButton != null)
                 _playButton.clicked -= OnPlayClicked;
-        }
+            if (_skipButton != null)
+                _skipButton.clicked -= OnSkipClicked;
 
-        private void OnPlayClicked()
-        {
-            UnbindEvents();
-            StartCoroutine(PlayRoutine());
-        }
+            if (m_PageScroll != null)
+            {
+                m_PageScroll.OnScrollProgressChanged -= HandleScrollProgress;
+                m_PageScroll.OnPageSettled -= HandlePageSettled;
+            }
 
-        private IEnumerator PlayRoutine()
-        {
-            _playButton.AddToClassList("hide");
-
-            yield return FadePanelRoutine(1f, 0f, 1f);
-
-            stageAnimator.SetTrigger("1-1");
-
-            yield return new WaitForSeconds(12.5f);
-
-            ProgramManager.Instance.FadeScreen(off: true, duration: 1f);
-            yield return new WaitForSeconds(1f);
-
-            AsyncOperation sceneLoad = SceneManager.LoadSceneAsync("Play");
-            while (!sceneLoad.isDone)
-                yield return null;
-
-            ProgramManager.Instance.FadeScreen(off: false, duration: 1f);
+            // CleanupPages(); 일부로 호출 안 한 거임 
         }
 
         private IEnumerator FadePanelRoutine(float from, float to, float duration)
@@ -110,9 +115,89 @@ namespace MatchDefense.Lobby
             if (_rootElement != null)
                 _rootElement.style.opacity = to;
         }
+
         #endregion
 
-        #region UI Page
+
+        #region Play
+
+        private void OnPlayClicked()
+        {
+            if (_playButton != null) _playButton.clicked -= OnPlayClicked;
+            StartCoroutine(PlayRoutine());
+        }
+
+        private void OnSkipClicked()
+        {
+            if (_skipButton != null) _skipButton.clicked -= OnSkipClicked;
+            StartCoroutine(SkipAnimation());
+        }
+
+        private IEnumerator PlayRoutine()
+        {
+            stageAnimator.SetTrigger("1-1");
+            _playButton.AddToClassList("hide");
+
+            yield return FadePanelRoutine(1f, 0f, 0.5f);
+            _skipButton.SetEnabled(true);
+
+            yield return new WaitForSeconds(19f);
+            ProgramManager.Instance.FadeScreen(off: true, duration: 1f);
+            yield return new WaitForSeconds(1f);
+            StopAllCoroutines();
+            StartCoroutine(LoadPlaySceneRoutine());
+        }
+
+        private IEnumerator SkipAnimation()
+        {
+            ProgramManager.Instance.FadeScreen(off: true, duration: 1f);
+            yield return new WaitForSeconds(1f);
+            StopAllCoroutines();
+            StartCoroutine(LoadPlaySceneRoutine());
+        }
+
+        private IEnumerator LoadPlaySceneRoutine()
+        {
+            AsyncOperation sceneLoad = SceneManager.LoadSceneAsync("Play");
+            while (!sceneLoad.isDone)
+                yield return null;
+
+            ProgramManager.Instance.FadeScreen(off: false, duration: 1f);
+        }
+
+        #endregion
+
+
+        #region Stage
+
+        private void HandleScrollProgress(float progress)
+        {
+            if (objectToRotate == null || pageTransforms == null || pageTransforms.Length == 0) return;
+
+            int startIndex = Mathf.FloorToInt(progress);
+            int endIndex = startIndex + 1;
+
+            float t = progress - startIndex;
+            startIndex = Mathf.Clamp(startIndex, 0, pageTransforms.Length - 1);
+            endIndex = Mathf.Clamp(endIndex, 0, pageTransforms.Length - 1);
+
+            Transform startTrans = pageTransforms[startIndex];
+            Transform endTrans = pageTransforms[endIndex];
+
+            objectToRotate.position = Vector3.Lerp(startTrans.position, endTrans.position, t);
+            objectToRotate.rotation = Quaternion.Slerp(startTrans.rotation, endTrans.rotation, t);
+        }
+
+        private void HandlePageSettled(int pageIndex)
+        {
+            // Debug.Log($"Stage Page Settled: {pageIndex}");
+        }
+
+        #endregion
+
+
+        #region STORE & INVENTORY & QUEST
+
         private int _currentPageIndex = -1;
         private VisualElement pagesContainer;
         private VisualElement[] _pages;
@@ -151,7 +236,7 @@ namespace MatchDefense.Lobby
 
             _stageButton = rootElement.Q<Button>("stage-btn");
             _storeButton = rootElement.Q<Button>("store-btn");
-            _inventoryButton = rootElement.Q<Button>("inventory-btn");
+            _inventoryButton = rootElement.Q<Button>("inven-btn");
             _questButton = rootElement.Q<Button>("quest-btn");
 
             if (_stageButton != null) _stageButton.clicked += () => SwitchPage(-1);
@@ -192,16 +277,7 @@ namespace MatchDefense.Lobby
             }
             _currentPageIndex = targetIndex;
         }
-        #endregion
 
-        #region Stage
-        private int _currentStage = 0;
-
-        private IEnumerator GoToNextStageRoutine()
-        {
-            _currentStage++;
-            yield return new WaitForSeconds(1f);
-        }
         #endregion
     }
 }

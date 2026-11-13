@@ -47,7 +47,7 @@ Material:
     - _Glossiness: 0.1
     - _Metallic: 0.702
     - _NoiseScale: 0.1
-    - _ShadowStrength: 1
+    - _ShadowStrength: 0.869
     - _Smoothness: 0.724
     m_Colors:
     - _BaseColor: {r: 0.7830189, g: 0.7830189, b: 0.7830189, a: 1}

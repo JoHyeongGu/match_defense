@@ -6639,6 +6639,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2082880512}
   - component: {fileID: 2082880513}
+  - component: {fileID: 2082880515}
   - component: {fileID: 2082880514}
   m_Layer: 0
   m_Name: '* Lobby Manager'
@@ -6743,6 +6744,20 @@ PanelRenderer:
   m_PivotReferenceSize: 0
   m_Pivot: 0
   m_Position: 0
+--- !u!114 &2082880515
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2082880511}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a5e62a53ac37b44e9486519ac075684, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIManager
+  csvFile: {fileID: 4900000, guid: 78d5902c5b89db043a5538b0ada509b4, type: 3}
+  currentLanguage: 0
 --- !u!1 &2109941369
 GameObject:
   m_ObjectHideFlags: 0

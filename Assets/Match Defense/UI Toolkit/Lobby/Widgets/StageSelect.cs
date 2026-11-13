@@ -7,11 +7,16 @@ public partial class StageSelect : VisualElement
     #region UI Elements & Layout Attributes
 
     [UxmlAttribute]
-    public string SubText
+    public string LocalizationKey
     {
-        get => m_Label.text;
-        set => m_Label.text = value;
+        get => m_LocalizationKey;
+        set
+        {
+            m_LocalizationKey = value;
+            if (m_Label != null) m_Label.LocalizationKey = value;
+        }
     }
+    private string m_LocalizationKey;
 
     [UxmlAttribute]
     public Sprite EmptyStar
@@ -73,10 +78,10 @@ public partial class StageSelect : VisualElement
         set
         {
             m_FontSize = value;
-            UpdateFontSize();
+            if (m_Label != null) m_Label.FontSize = value;
         }
     }
-    private float m_FontSize = 5f;
+    private float m_FontSize = 7f;
 
     [UxmlAttribute]
     public Color TextColor
@@ -87,12 +92,12 @@ public partial class StageSelect : VisualElement
     private Color m_TextColor = Color.white;
 
     [UxmlAttribute]
-    public float OutlineWidth
+    public float OutlineWidthVW
     {
-        get => m_OutlineWidth;
-        set { m_OutlineWidth = value; if (m_Label != null) m_Label.style.unityTextOutlineWidth = value; }
+        get => m_OutlineWidthVW;
+        set { m_OutlineWidthVW = value; if (m_Label != null) m_Label.OutlineWidthVW = value; }
     }
-    private float m_OutlineWidth = 0.6f;
+    private float m_OutlineWidthVW = 0.06f; // 기존 0.6 픽셀 정도의 느낌을 내는 vw값
 
     [UxmlAttribute]
     public Color OutlineColor
@@ -102,12 +107,37 @@ public partial class StageSelect : VisualElement
     }
     private Color m_OutlineColor = new Color(183f / 255f, 111f / 255f, 32f / 255f, 1f);
 
+    [UxmlAttribute]
+    public Vector2 ShadowOffsetVW
+    {
+        get => m_ShadowOffsetVW;
+        set { m_ShadowOffsetVW = value; if (m_Label != null) m_Label.ShadowOffsetVW = value; }
+    }
+    private Vector2 m_ShadowOffsetVW = new Vector2(0f, -0.5f); // 기존 UXML의 0 -10px 느낌
+
+    [UxmlAttribute]
+    public float ShadowBlurVW
+    {
+        get => m_ShadowBlurVW;
+        set { m_ShadowBlurVW = value; if (m_Label != null) m_Label.ShadowBlurVW = value; }
+    }
+    private float m_ShadowBlurVW = 1.5f;
+
+    [UxmlAttribute]
+    public Color ShadowColor
+    {
+        get => m_ShadowColor;
+        set { m_ShadowColor = value; if (m_Label != null) m_Label.ShadowColor = value; }
+    }
+    private Color m_ShadowColor = new Color(1f, 168f / 255f, 0f, 1f);
+
     #endregion
 
 
     #region Initialization & Layout
 
-    private Label m_Label;
+    // [수정됨] Label 대신 LocalizedLabel 사용
+    private LocalizedLabel m_Label;
     private VisualElement m_StarsContainer;
     private Image[] m_StarImages = new Image[5];
 
@@ -121,9 +151,16 @@ public partial class StageSelect : VisualElement
         style.paddingRight = Length.Percent(10);
         style.paddingLeft = Length.Percent(10);
 
-        m_Label = new Label("Keep your important things safe!");
+        m_Label = new LocalizedLabel();
         m_Label.name = "stage-sub_1";
         m_Label.AddToClassList("clay-text");
+
+        m_Label.LocalizationKey = m_LocalizationKey;
+        m_Label.FontSize = m_FontSize;
+        m_Label.OutlineWidthVW = m_OutlineWidthVW;
+        m_Label.ShadowOffsetVW = m_ShadowOffsetVW;
+        m_Label.ShadowBlurVW = m_ShadowBlurVW;
+        m_Label.ShadowColor = m_ShadowColor;
 
         m_Label.style.unityFontStyleAndWeight = FontStyle.Normal;
         m_Label.style.unityTextAlign = TextAnchor.MiddleCenter;
@@ -161,8 +198,6 @@ public partial class StageSelect : VisualElement
         }
 
         hierarchy.Add(m_StarsContainer);
-
-        RegisterCallback<GeometryChangedEvent>(evt => UpdateFontSize());
 
         UpdateStars();
         UpdateTextStyles();
@@ -205,22 +240,7 @@ public partial class StageSelect : VisualElement
         }
 
         m_Label.style.color = m_TextColor;
-        m_Label.style.unityTextOutlineWidth = m_OutlineWidth;
         m_Label.style.unityTextOutlineColor = m_OutlineColor;
-
-        UpdateFontSize();
-    }
-
-    private void UpdateFontSize()
-    {
-        if (m_Label == null) return;
-
-        float currentWidth = resolvedStyle.width;
-
-        if (currentWidth > 0)
-        {
-            m_Label.style.fontSize = currentWidth * (m_FontSize / 100f);
-        }
     }
 
     #endregion

@@ -147,6 +147,8 @@
     transition-property: background-color, border-color;
     transition-duration: 0.1s;
     transition-timing-function: ease-in-out;
+    -unity-font-style: bold;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF R");
 }
 
 .page-tab-btn .unity-button__image {

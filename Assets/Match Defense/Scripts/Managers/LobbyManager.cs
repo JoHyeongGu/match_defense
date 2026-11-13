@@ -15,6 +15,7 @@ namespace MatchDefense.Lobby
         private VisualElement _rootElement;
         private Button _playButton;
         private Button _skipButton;
+        private Button _settingButton;
 
         [Header("<color=yellow>Animation</color>")]
         [SerializeField] private Animator stageAnimator;
@@ -64,6 +65,7 @@ namespace MatchDefense.Lobby
 
             _playButton = rootElement.Q<Button>("play-btn");
             _skipButton = rootElement.Q<Button>("skip-btn");
+            _settingButton = rootElement.Q<Button>("setting-btn");
             m_PageScroll = rootElement.Q<PageScroll>("sub-stage-scroll");
 
             UnbindEvents();
@@ -77,7 +79,8 @@ namespace MatchDefense.Lobby
                 _playButton.clicked += OnPlayClicked;
             if (_skipButton != null)
                 _skipButton.clicked += OnSkipClicked;
-
+            if (_settingButton != null)
+                _settingButton.clicked += () => UIManager.Instance.SwitchLanguage();
             if (m_PageScroll != null)
             {
                 m_PageScroll.OnScrollProgressChanged += HandleScrollProgress;
@@ -91,7 +94,8 @@ namespace MatchDefense.Lobby
                 _playButton.clicked -= OnPlayClicked;
             if (_skipButton != null)
                 _skipButton.clicked -= OnSkipClicked;
-
+            if (_settingButton != null)
+                _settingButton.clicked -= () => UIManager.Instance.SwitchLanguage();
             if (m_PageScroll != null)
             {
                 m_PageScroll.OnScrollProgressChanged -= HandleScrollProgress;

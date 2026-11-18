@@ -22786,6 +22786,7 @@ MonoBehaviour:
   m_UnmodifiedMeshVersion: 71
   m_Size: {x: 2, y: 2, z: 2}
   m_LocalCenter: {x: 0, y: 0, z: 0}
+  m_PivotRatio: {x: 0, y: 0, z: 0}
   references:
     version: 2
     RefIds:
@@ -24716,6 +24717,7 @@ MonoBehaviour:
   m_UnmodifiedMeshVersion: 4934
   m_Size: {x: 3.777348, y: 3.6586413, z: 5.881147}
   m_LocalCenter: {x: 0.34705043, y: 0, z: 0.20107985}
+  m_PivotRatio: {x: 0, y: 0, z: 0}
   references:
     version: 2
     RefIds:
@@ -55639,6 +55641,7 @@ MonoBehaviour:
   m_UnmodifiedMeshVersion: 50
   m_Size: {x: 2, y: 2, z: 2}
   m_LocalCenter: {x: 0, y: 0, z: 0}
+  m_PivotRatio: {x: 0, y: 0, z: 0}
   references:
     version: 2
     RefIds:
@@ -58011,6 +58014,7 @@ MonoBehaviour:
   m_UnmodifiedMeshVersion: 50
   m_Size: {x: 2, y: 2, z: 2}
   m_LocalCenter: {x: 0, y: 0, z: 0}
+  m_PivotRatio: {x: 0, y: 0, z: 0}
   references:
     version: 2
     RefIds:
@@ -64753,6 +64757,7 @@ MonoBehaviour:
   m_UnmodifiedMeshVersion: 4934
   m_Size: {x: 3.777348, y: 3.6586413, z: 5.881147}
   m_LocalCenter: {x: 0.34705043, y: 0, z: 0.20107985}
+  m_PivotRatio: {x: 0, y: 0, z: 0}
   references:
     version: 2
     RefIds:
@@ -79922,6 +79927,7 @@ MonoBehaviour:
   m_UnmodifiedMeshVersion: 50
   m_Size: {x: 2, y: 2, z: 2}
   m_LocalCenter: {x: 0, y: 0, z: 0}
+  m_PivotRatio: {x: 0, y: 0, z: 0}
   references:
     version: 2
     RefIds:
@@ -95578,6 +95584,7 @@ MonoBehaviour:
   m_UnmodifiedMeshVersion: 23
   m_Size: {x: 1, y: 1, z: 1}
   m_LocalCenter: {x: 0, y: 0, z: 0}
+  m_PivotRatio: {x: 0, y: 0, z: 0}
   references:
     version: 2
     RefIds:
@@ -97580,6 +97587,7 @@ MonoBehaviour:
   m_UnmodifiedMeshVersion: 3356
   m_Size: {x: 2, y: 0.05040528, z: 2}
   m_LocalCenter: {x: -0.00000009613502, y: -0.9747973, z: 0.000000069916375}
+  m_PivotRatio: {x: 0, y: 0, z: 0}
   references:
     version: 2
     RefIds:
@@ -100799,6 +100807,7 @@ MonoBehaviour:
   m_UnmodifiedMeshVersion: 4934
   m_Size: {x: 3.777348, y: 3.6586413, z: 5.881147}
   m_LocalCenter: {x: 0.34705043, y: 0, z: 0.20107985}
+  m_PivotRatio: {x: 0, y: 0, z: 0}
   references:
     version: 2
     RefIds:
@@ -103442,6 +103451,7 @@ MonoBehaviour:
   m_UnmodifiedMeshVersion: 4467
   m_Size: {x: 0.692585, y: 0.18580198, z: 3.3884325}
   m_LocalCenter: {x: 0.653708, y: -0.907099, z: -0.30380726}
+  m_PivotRatio: {x: 0, y: 0, z: 0}
   references:
     version: 2
     RefIds:
@@ -120307,6 +120317,7 @@ MonoBehaviour:
   m_UnmodifiedMeshVersion: 23
   m_Size: {x: 1, y: 1, z: 1}
   m_LocalCenter: {x: 0, y: 0, z: 0}
+  m_PivotRatio: {x: 0, y: 0, z: 0}
   references:
     version: 2
     RefIds:
@@ -120929,6 +120940,7 @@ MonoBehaviour:
   m_UnmodifiedMeshVersion: 50
   m_Size: {x: 2, y: 2, z: 2}
   m_LocalCenter: {x: 0, y: 0, z: 0}
+  m_PivotRatio: {x: 0, y: 0, z: 0}
   references:
     version: 2
     RefIds:
@@ -122244,6 +122256,7 @@ MonoBehaviour:
   m_UnmodifiedMeshVersion: 71
   m_Size: {x: 2, y: 2, z: 2}
   m_LocalCenter: {x: 0, y: 0, z: 0}
+  m_PivotRatio: {x: 0, y: 0, z: 0}
   references:
     version: 2
     RefIds:
@@ -123980,6 +123993,7 @@ MonoBehaviour:
   m_UnmodifiedMeshVersion: 50
   m_Size: {x: 2, y: 2, z: 2}
   m_LocalCenter: {x: 0, y: 0, z: 0}
+  m_PivotRatio: {x: 0, y: 0, z: 0}
   references:
     version: 2
     RefIds:
@@ -125196,6 +125210,7 @@ MonoBehaviour:
   m_UnmodifiedMeshVersion: 22
   m_Size: {x: 1, y: 1, z: 1}
   m_LocalCenter: {x: 0, y: 0, z: 0}
+  m_PivotRatio: {x: 0, y: 0, z: 0}
   references:
     version: 2
     RefIds:
@@ -133929,6 +133944,7 @@ MonoBehaviour:
   m_UnmodifiedMeshVersion: 71
   m_Size: {x: 2, y: 2, z: 2}
   m_LocalCenter: {x: 0, y: 0, z: 0}
+  m_PivotRatio: {x: 0, y: 0, z: 0}
   references:
     version: 2
     RefIds:
@@ -136461,6 +136477,7 @@ MonoBehaviour:
   m_UnmodifiedMeshVersion: 4934
   m_Size: {x: 3.777348, y: 3.6586413, z: 5.881147}
   m_LocalCenter: {x: 0.34705043, y: 0, z: 0.20107985}
+  m_PivotRatio: {x: 0, y: 0, z: 0}
   references:
     version: 2
     RefIds:
@@ -148162,6 +148179,7 @@ MonoBehaviour:
   m_UnmodifiedMeshVersion: 4934
   m_Size: {x: 3.777348, y: 3.6586413, z: 5.881147}
   m_LocalCenter: {x: 0.34705043, y: 0, z: 0.20107985}
+  m_PivotRatio: {x: 0, y: 0, z: 0}
   references:
     version: 2
     RefIds:
@@ -175709,6 +175727,7 @@ MonoBehaviour:
   m_UnmodifiedMeshVersion: 71
   m_Size: {x: 2, y: 2, z: 2}
   m_LocalCenter: {x: 0, y: 0, z: 0}
+  m_PivotRatio: {x: 0, y: 0, z: 0}
   references:
     version: 2
     RefIds:

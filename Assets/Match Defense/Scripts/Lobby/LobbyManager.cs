@@ -167,6 +167,8 @@ namespace MatchDefense.Lobby
                 yield return null;
 
             ProgramManager.Instance.FadeScreen(off: false, duration: 1f);
+            yield return new WaitForSeconds(1f);
+            this.gameObject.SetActive(false);
         }
 
         #endregion

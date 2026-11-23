@@ -1,0 +1,342 @@
+.bottom-rect {
+    position: absolute;
+    width: 112%;
+    height: 60%;
+    bottom: -2%;
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Rects.png?fileID=-981860313&guid=d8cd81cc99e6902459f2c392b35ef169&type=3#Clay_Rects_4");
+    -unity-background-image-tint-color: rgb(67, 36, 16);
+    -unity-slice-left: 10;
+    -unity-slice-top: 10;
+    -unity-slice-right: 10;
+    -unity-slice-bottom: 10;
+    transition-duration: 0.5s;
+    align-self: center;
+    transition-timing-function: ease-in;
+}
+
+.bottom-rect.hide {
+    position: absolute;
+    bottom: -2%;
+    height: 10%;
+    width: 112%;
+}
+
+.match-board {
+    position: absolute;
+    bottom: 12.5%;
+    align-self: center;
+    width: 95%;
+    height: auto;
+    align-content: stretch;
+    top: auto;
+    transition-duration: 0.5s;
+    transition-timing-function: ease-in;
+    aspect-ratio: 1.2;
+}
+
+.match-board.hide {
+    bottom: -100%;
+}
+
+.match-cell {
+    border-radius: 15%;
+}
+
+.cell-type-a {
+    background-color: rgba(0, 0, 0, 0);
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Rects.png?fileID=-1111875157&guid=d8cd81cc99e6902459f2c392b35ef169&type=3#Clay_Rects_1");
+    -unity-background-image-tint-color: rgb(140, 98, 56);
+    -unity-slice-left: 1;
+    -unity-slice-top: 1;
+    -unity-slice-right: 1;
+    -unity-slice-bottom: 1;
+}
+
+.cell-type-b {
+    background-color: rgba(0, 0, 0, 0);
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Rects.png?fileID=496504100&guid=d8cd81cc99e6902459f2c392b35ef169&type=3#Clay_Rects_11");
+    -unity-slice-left: 1;
+    -unity-slice-top: 1;
+    -unity-slice-right: 1;
+    -unity-slice-bottom: 1;
+    -unity-background-image-tint-color: rgb(125, 77, 40);
+}
+
+.match-item {
+    background-position: center;
+    filter: drop-shadow(0 1 2 rgba(0, 0, 0, 0.561));
+}
+
+.store-board {
+    width: 100%;
+    height: 9.5%;
+    padding: 1.5% 2%;
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Rects.png?fileID=-981860313&guid=d8cd81cc99e6902459f2c392b35ef169&type=3#Clay_Rects_4");
+    -unity-background-image-tint-color: rgb(200, 128, 71);
+    position: absolute;
+    top: auto;
+    -unity-slice-left: 4;
+    -unity-slice-right: 4;
+    -unity-slice-top: 4;
+    -unity-slice-bottom: 4;
+    left: auto;
+    align-self: center;
+    justify-content: space-around;
+    flex-direction: row;
+    align-items: center;
+    padding-right: 2%;
+    padding-left: 2%;
+    padding-bottom: 3%;
+    bottom: 52%;
+    transition-timing-function: ease-in;
+    transition-duration: 0.5s;
+}
+
+.store-board.hide {
+    bottom: 0%;
+}
+
+.store-frame {
+    align-items: center;
+    justify-content: center;
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/Play/Char_Frame_Clay.png?fileID=21300000&guid=94ebb3c3edf3b87469d7af73a22712b0&type=3#Char_Frame_Clay");
+    -unity-background-image-tint-color: rgb(209, 125, 64);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.store-thumb {
+    position: absolute;
+    top: 10%;
+    width: 64%;
+    height: 64%;
+}
+
+.store-slider {
+    position: absolute;
+    left: 18%;
+    right: 19%;
+    bottom: 4%;
+    height: 28%;
+}
+
+.store-count {
+    position: absolute;
+    top: 4%;
+    right: 7%;
+    width: 32%;
+    height: 32%;
+    margin: 0;
+    padding: 0;
+    -unity-text-align: middle-center;
+    color: rgba(255, 255, 255, 0.729);
+    -unity-font-style: normal;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+}
+
+.unity-toggle__input {
+    visibility: hidden;
+    display: none;
+}
+
+.play-btn {
+    height: 10%;
+    bottom: 2%;
+    position: absolute;
+    align-self: center;
+    align-content: center;
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Button.png?fileID=1235389772&guid=930688b933a58884b84696eacc44a6a8&type=3#Clay_Button_0");
+    transition-timing-function: ease-in-out-sine;
+    transition-duration: 0.2s;
+    background-color: rgba(0, 0, 0, 0);
+    border-left-color: rgba(0, 0, 0, 0);
+    border-right-color: rgba(0, 0, 0, 0);
+    border-top-color: rgba(0, 0, 0, 0);
+    border-bottom-color: rgba(0, 0, 0, 0);
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
+    border-left-width: 0;
+    aspect-ratio: 1;
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    padding-top: 3.5%;
+    padding-right: 3.5%;
+    padding-bottom: 3.5%;
+    padding-left: 3.5%;
+    -unity-background-image-tint-color: rgb(178, 102, 39);
+}
+
+.play-btn .unity-image {
+    -unity-background-image-tint-color: rgb(241, 229, 221);
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Button.png?fileID=1358254642&guid=930688b933a58884b84696eacc44a6a8&type=3#Clay_Button_2");
+    height: 90%;
+    width: 80%;
+    align-self: center;
+    margin-left: 12%;
+    transition-duration: 0.1s;
+    transition-timing-function: ease-in;
+}
+
+.play-btn:active {
+    -unity-background-image-tint-color: rgb(159, 90, 34);
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Button.png?fileID=-1174686892&guid=930688b933a58884b84696eacc44a6a8&type=3#Clay_Button_1");
+}
+
+.play-btn:active .unity-image {
+    -unity-background-image-tint-color: rgb(217, 204, 195);
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Button.png?fileID=210875437&guid=930688b933a58884b84696eacc44a6a8&type=3#Clay_Button_3");
+    height: 85%;
+    width: 80%;
+    align-self: center;
+}
+
+.play-btn:checked {
+    -unity-background-image-tint-color: rgb(159, 90, 34);
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Button.png?fileID=-1174686892&guid=930688b933a58884b84696eacc44a6a8&type=3#Clay_Button_1");
+    transition-duration: 0.5s;
+    transition-timing-function: ease-in-back;
+}
+
+.play-btn:checked .unity-image {
+    -unity-background-image-tint-color: rgb(217, 204, 195);
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Button.png?fileID=210875437&guid=930688b933a58884b84696eacc44a6a8&type=3#Clay_Button_3");
+    height: 85%;
+    width: 80%;
+    align-self: center;
+}
+
+.play-btn.hide {
+    position: absolute;
+    bottom: -30%;
+    background-color: rgba(1, 1, 1, 0);
+    border-left-color: rgba(1, 1, 1, 0);
+    border-right-color: rgba(1, 1, 1, 0);
+    border-top-color: rgba(1, 1, 1, 0);
+    border-bottom-color: rgba(1, 1, 1, 0);
+}
+
+.side-btn {
+    position: absolute;
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Rects.png?fileID=-1374895064&guid=d8cd81cc99e6902459f2c392b35ef169&type=3#Clay_Rects_12");
+    -unity-background-image-tint-color: rgb(103, 55, 24);
+    -unity-slice-left: 7;
+    -unity-slice-top: 7;
+    -unity-slice-right: 7;
+    -unity-slice-bottom: 7;
+    padding-left: 5%;
+    padding-right: 5%;
+    padding-bottom: 2%;
+    padding-top: 2%;
+    transition-duration: 0.5s;
+    transition-timing-function: ease-out-back;
+    bottom: 2.2%;
+}
+
+.side-btn .unity-label {
+    width: 100%;
+    height: 100%;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-font-style: normal;
+    color: rgb(195, 119, 69);
+    align-self: center;
+    -unity-text-align: middle-center;
+    -unity-text-auto-size: best-fit 10px 200px;
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+}
+
+.turn-count {
+    width: 28%;
+    height: 10%;
+    left: 0%;
+    justify-content: space-between;
+    flex-direction: row;
+    align-items: center;
+    padding-right: 1%;
+    padding-left: 2%;
+}
+
+.turn-count.hide {
+    bottom: 10%;
+    width: 32%;
+    height: 8%;
+}
+
+.double-btn {
+    width: 27%;
+    height: 10.5%;
+    padding-top: 6%;
+    padding-bottom: 6%;
+    align-self: center;
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Rects.png?fileID=-981860313&guid=d8cd81cc99e6902459f2c392b35ef169&type=3#Clay_Rects_4");
+    bottom: 1.5%;
+    letter-spacing: 10px;
+}
+
+.double-btn.hide {
+    bottom: -15%;
+}
+
+.double-btn:active {
+    -unity-background-image-tint-color: rgb(159, 90, 34);
+}
+
+.double-btn .double-off-txt {
+    display: flex;
+}
+
+.double-btn .double-on-txt {
+    display: none;
+}
+
+.double-btn:checked .double-off-txt {
+    display: none;
+}
+
+.double-btn:checked .double-on-txt {
+    display: flex;
+}
+
+.auto-btn {
+    width: 15%;
+    height: auto;
+    left: 25%;
+    aspect-ratio: 1;
+}
+
+.auto-btn:active {
+    -unity-background-image-tint-color: rgb(80, 42, 15);
+}
+
+.auto-btn .unity-label {
+    top: -55%;
+    width: 100%;
+    height: 50%;
+}
+
+.auto-check {
+    display: none;
+    width: 50%;
+    position: absolute;
+    align-self: center;
+    height: 50%;
+    margin-left: 0;
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    left: 25%;
+}
+
+.auto-btn:checked .auto-check {
+    display: flex;
+}

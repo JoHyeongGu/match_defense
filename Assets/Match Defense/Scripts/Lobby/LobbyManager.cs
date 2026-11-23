@@ -12,6 +12,7 @@ namespace MatchDefense.Lobby
         [SerializeField] private VisualTreeAsset storePageUxml;
         [SerializeField] private VisualTreeAsset inventoryPageUxml;
         [SerializeField] private VisualTreeAsset questPageUxml;
+        private int uiVersion = -1;
         private VisualElement _rootElement;
         private Button _playButton;
         private Button _skipButton;
@@ -58,8 +59,11 @@ namespace MatchDefense.Lobby
             UnbindEvents();
         }
 
-        private void OnUIReload(PanelRenderer panel, VisualElement rootElement)
+        private void OnUIReload(PanelRenderer panel, VisualElement rootElement, int version)
         {
+            if (version == uiVersion) return;
+            uiVersion = version;
+
             _rootElement = rootElement;
             _rootElement.style.opacity = 1f;
 
@@ -101,8 +105,6 @@ namespace MatchDefense.Lobby
                 m_PageScroll.OnScrollProgressChanged -= HandleScrollProgress;
                 m_PageScroll.OnPageSettled -= HandlePageSettled;
             }
-
-            // CleanupPages(); 일부로 호출 안 한 거임 
         }
 
         private IEnumerator FadePanelRoutine(float from, float to, float duration)
@@ -165,8 +167,6 @@ namespace MatchDefense.Lobby
             AsyncOperation sceneLoad = SceneManager.LoadSceneAsync("Play");
             while (!sceneLoad.isDone)
                 yield return null;
-
-            ProgramManager.Instance.FadeScreen(off: false, duration: 1f);
             yield return new WaitForSeconds(1f);
             this.gameObject.SetActive(false);
         }

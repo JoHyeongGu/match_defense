@@ -53,7 +53,9 @@ TextureImporter:
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
+  spriteTessellationMethod: 0
   spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
   textureType: 8
   textureShape: 1
   singleChannelComponent: 0
@@ -132,7 +134,7 @@ TextureImporter:
         height: 175
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 59, y: 59, z: 70, w: 49}
+      border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
@@ -148,13 +150,13 @@ TextureImporter:
       name: Clay_Rects_1
       rect:
         serializedVersion: 2
-        x: 676
+        x: 679
         y: 304
         width: 566
         height: 208
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 196, y: 87, z: 211, w: 81}
+      border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
@@ -176,7 +178,7 @@ TextureImporter:
         height: 139
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 48, y: 53, z: 45, w: 44}
+      border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
@@ -198,7 +200,7 @@ TextureImporter:
         height: 207
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 68, y: 69, z: 73, w: 62}
+      border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
@@ -220,7 +222,7 @@ TextureImporter:
         height: 196
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 59, y: 68, z: 60, w: 83}
+      border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
@@ -242,7 +244,7 @@ TextureImporter:
         height: 134
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 40, y: 49, z: 46, w: 42}
+      border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []

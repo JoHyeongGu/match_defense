@@ -37,14 +37,14 @@
     border-bottom-width: 0;
     border-left-width: 0;
     aspect-ratio: 1;
-    background-image: url("project://database/Assets/Match%20Defense/Sprites/Lobby/Clay_Button.png?fileID=1235389772&guid=930688b933a58884b84696eacc44a6a8&type=3#Clay_Button_0");
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Button.png?fileID=1235389772&guid=930688b933a58884b84696eacc44a6a8&type=3#Clay_Button_0");
     height: 13%;
     bottom: 20%;
 }
 
 .play-btn .unity-image {
     -unity-background-image-tint-color: rgb(253, 211, 187);
-    background-image: url("project://database/Assets/Match%20Defense/Sprites/Lobby/Clay_Button.png?fileID=1358254642&guid=930688b933a58884b84696eacc44a6a8&type=3#Clay_Button_2");
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Button.png?fileID=1358254642&guid=930688b933a58884b84696eacc44a6a8&type=3#Clay_Button_2");
     height: 90%;
     width: 80%;
     align-self: center;
@@ -56,7 +56,7 @@
 
 .play-btn:active .unity-image {
     -unity-background-image-tint-color: rgb(253, 211, 187);
-    background-image: url("project://database/Assets/Match%20Defense/Sprites/Lobby/Clay_Button.png?fileID=210875437&guid=930688b933a58884b84696eacc44a6a8&type=3#Clay_Button_3");
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Button.png?fileID=210875437&guid=930688b933a58884b84696eacc44a6a8&type=3#Clay_Button_3");
     height: 80%;
     width: 75%;
     align-self: center;
@@ -66,7 +66,7 @@
 
 .play-btn:active {
     -unity-background-image-tint-color: rgb(220, 70, 48);
-    background-image: url("project://database/Assets/Match%20Defense/Sprites/Lobby/Clay_Button.png?fileID=-1174686892&guid=930688b933a58884b84696eacc44a6a8&type=3#Clay_Button_1");
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Button.png?fileID=-1174686892&guid=930688b933a58884b84696eacc44a6a8&type=3#Clay_Button_1");
 }
 
 .play-btn.hide {

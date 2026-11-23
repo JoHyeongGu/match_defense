@@ -10,78 +10,115 @@ namespace MatchDefense.Match
     [Serializable]
     public struct ItemVisual
     {
-        [Tooltip("평상시 보여질 기본 스프라이트")]
         public Sprite defaultSprite;
-        [Tooltip("매치될 때 재생될 스톱모션 스프라이트 배열")]
         public Sprite[] mashSprites;
     }
 
     [UxmlElement]
     public partial class MatchBoard : VisualElement
     {
-        [UxmlAttribute] public int WidthCount { get; set; } = 6;
-        [UxmlAttribute] public int HeightCount { get; set; } = 6;
+        private const string BoardClass = "match-board";
+        private const string CellClass = "match-cell";
+        private const string CellTypeAClass = "cell-type-a";
+        private const string CellTypeBClass = "cell-type-b";
+        private const string ItemClass = "match-item";
+
+        private int widthCount = 6;
+        private int heightCount = 5;
+        private float cellSpacing = 0.06f;
+
+        [UxmlAttribute]
+        public int WidthCount
+        {
+            get => widthCount;
+            set { widthCount = Mathf.Max(1, value); UpdateBoardLayout(); }
+        }
+
+        [UxmlAttribute]
+        public int HeightCount
+        {
+            get => heightCount;
+            set { heightCount = Mathf.Max(1, value); UpdateBoardLayout(); }
+        }
+
+        [UxmlAttribute]
+        public float CellSpacing
+        {
+            get => cellSpacing;
+            set { cellSpacing = Mathf.Max(0f, value); UpdateBoardLayout(); }
+        }
+
         [UxmlAttribute] public float HintDelay { get; set; } = 3f;
         [UxmlAttribute] public int InitialPoolSize { get; set; } = 64;
 
         public bool IsMatchActive { get; private set; } = true;
 
+        private readonly VisualElement cellLayer;
+        private readonly VisualElement itemLayer;
+        private readonly List<VisualElement> backgroundCells = new List<VisualElement>();
+
         private MonoBehaviour coroutineRunner;
-        private ItemVisual[] visualTypes;
-        private float[] itemTypeWeights;
+        private MatchUnitData[] unitDatas;
         private Action<float, int> onMatchHaptic;
+        private Action<int, int> onItemMatched;
+        private Func<bool> canDragCheck;
+        private Action onDragBlocked;
+        private Action onTurnConsumed;
 
-        private MatchItemElement[] boardItems;
-        private Queue<MatchItemElement> itemPool;
         private float itemSize;
+        private float CellStride => itemSize * (1f + cellSpacing);
+        private bool isInitialized;
 
-        private int selectedX = -1;
-        private int selectedY = -1;
-        private bool isProcessing;
-        private bool isPointerDown = false;
-        private bool isInitialized = false;
-
-        private HashSet<MatchItemElement> matchedSet = new HashSet<MatchItemElement>();
-        private List<List<MatchItemElement>> matchGroups = new List<List<MatchItemElement>>();
-        private Queue<MatchItemElement> bfsQueue = new Queue<MatchItemElement>();
-        private int activeGroupCount = 0;
-        private float totalWeight;
-
-        private float idleTimer = 0f;
-        private MatchItemElement currentHintItem = null;
-        private Sequence hintSeq;
-        private Vector2 hintOriginalPos;
-
-        // 생성자 (UI Builder에서 배치되는 순간 실행됨)
         public MatchBoard()
         {
-            // 이 위젯 자체의 이벤트를 수신
+            AddToClassList(BoardClass);
+
+            cellLayer = CreateLayer("match-board-cells");
+            itemLayer = CreateLayer("match-board-items");
+            Add(cellLayer);
+            Add(itemLayer);
+
             RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+            RegisterCallback<DetachFromPanelEvent>(_ => ResetHint());
             RegisterCallback<PointerDownEvent>(OnPointerDown);
             RegisterCallback<PointerMoveEvent>(OnPointerMove);
             RegisterCallback<PointerUpEvent>(OnPointerUp);
-            RegisterCallback<PointerLeaveEvent>(OnPointerUp); // 영역을 벗어나면 드래그 취소
-
-            // 프레임 업데이트 스케줄러 (힌트 시스템용)
+            RegisterCallback<PointerLeaveEvent>(OnPointerUp);
             schedule.Execute(OnUpdate).Every(16);
-
             for (int i = 0; i < 20; i++) matchGroups.Add(new List<MatchItemElement>(16));
         }
 
-        /// <summary>
-        /// MatchPlayManager에서 외부 데이터(스프라이트 등)를 주입할 때 호출
-        /// </summary>
-        public void Initialize(MonoBehaviour runner, ItemVisual[] visuals, float[] weights, Action<float, int> hapticCallback)
+        private VisualElement CreateLayer(string layerName)
+        {
+            var layer = new VisualElement { name = layerName, pickingMode = PickingMode.Ignore };
+            layer.style.position = Position.Absolute;
+            layer.style.left = 0;
+            layer.style.top = 0;
+            layer.style.right = 0;
+            layer.style.bottom = 0;
+            return layer;
+        }
+
+        public void Initialize(
+            MonoBehaviour runner,
+            MatchUnitData[] datas,
+            Action<float, int> hapticCallback,
+            Action<int, int> matchCallback,
+            Func<bool> canDragCallback = null,
+            Action dragBlockedCallback = null,
+            Action turnConsumedCallback = null)
         {
             coroutineRunner = runner;
-            visualTypes = visuals;
-            itemTypeWeights = weights;
+            unitDatas = datas;
             onMatchHaptic = hapticCallback;
+            onItemMatched = matchCallback;
+            canDragCheck = canDragCallback;
+            onDragBlocked = dragBlockedCallback;
+            onTurnConsumed = turnConsumedCallback;
 
             CalculateTotalWeight();
             isInitialized = true;
 
-            // 크기 계산이 완료되어 있다면 바로 보드 생성
             if (itemSize > 0) BuildBoard();
         }
 
@@ -95,40 +132,98 @@ namespace MatchDefense.Match
             }
         }
 
+        #region Layout
         private void OnGeometryChanged(GeometryChangedEvent evt)
         {
-            // 위젯의 크기(레이아웃)가 변경되면 아이템 크기를 재계산
-            float maxItemWidth = layout.width / WidthCount;
-            float maxItemHeight = layout.height / HeightCount;
-            itemSize = Mathf.Min(maxItemWidth, maxItemHeight);
-
-            if (isInitialized && boardItems == null)
-            {
-                BuildBoard();
-            }
+            UpdateBoardLayout();
+            if (isInitialized && boardItems == null && itemSize > 0) BuildBoard();
         }
 
-        private void OnUpdate()
+        private void UpdateBoardLayout()
         {
-            if (!IsMatchActive || !isInitialized) return;
-
-            if (!isProcessing && selectedX == -1)
+            if (float.IsNaN(layout.width) || float.IsNaN(layout.height) ||
+                layout.width <= 0f || layout.height <= 0f)
             {
-                idleTimer += Time.deltaTime;
-                if (idleTimer >= HintDelay && currentHintItem == null)
+                return;
+            }
+
+            float denomX = widthCount + Mathf.Max(0, widthCount - 1) * cellSpacing;
+            float denomY = heightCount + Mathf.Max(0, heightCount - 1) * cellSpacing;
+            itemSize = Mathf.Max(0f, Mathf.Min(layout.width / denomX, layout.height / denomY));
+
+            RefreshGridCells();
+            RepositionActiveItems();
+        }
+
+        private void RefreshGridCells()
+        {
+            if (itemSize <= 0f) return;
+
+            int totalCells = widthCount * heightCount;
+
+            while (backgroundCells.Count < totalCells)
+            {
+                var cell = new VisualElement { pickingMode = PickingMode.Ignore };
+                cell.AddToClassList(CellClass);
+                cell.style.position = Position.Absolute;
+                cellLayer.Add(cell);
+                backgroundCells.Add(cell);
+            }
+
+            while (backgroundCells.Count > totalCells)
+            {
+                int last = backgroundCells.Count - 1;
+                cellLayer.Remove(backgroundCells[last]);
+                backgroundCells.RemoveAt(last);
+            }
+
+            for (int y = 0; y < heightCount; y++)
+            {
+                for (int x = 0; x < widthCount; x++)
                 {
-                    ShowHint();
+                    VisualElement cell = backgroundCells[GetIndex(x, y)];
+                    Vector2 pos = GetCellPosition(x, y);
+                    cell.style.left = pos.x;
+                    cell.style.top = pos.y;
+                    cell.style.width = itemSize;
+                    cell.style.height = itemSize;
+
+                    bool isTypeA = (x + y) % 2 == 0;
+                    cell.EnableInClassList(CellTypeAClass, isTypeA);
+                    cell.EnableInClassList(CellTypeBClass, !isTypeA);
                 }
             }
-            else
+        }
+
+        private void RepositionActiveItems()
+        {
+            if (boardItems == null || boardItems.Length != widthCount * heightCount) return;
+
+            for (int y = 0; y < heightCount; y++)
             {
-                ResetHint();
+                for (int x = 0; x < widthCount; x++)
+                {
+                    MatchItemElement item = GetItem(x, y);
+                    if (item != null)
+                    {
+                        item.SetSize(itemSize);
+                        item.SnapTo(GetCellPosition(x, y));
+                    }
+                }
             }
         }
 
+        private Vector2 GetCellPosition(int x, int y) => new Vector2(x * CellStride, y * CellStride);
+        #endregion
+
         #region Board & Pooling
+        private MatchItemElement[] boardItems;
+        private Queue<MatchItemElement> itemPool;
+
         private void BuildBoard()
         {
+            if (unitDatas == null || unitDatas.Length == 0) return;
+
             boardItems = new MatchItemElement[WidthCount * HeightCount];
             itemPool = new Queue<MatchItemElement>(InitialPoolSize);
 
@@ -143,16 +238,14 @@ namespace MatchDefense.Match
                     {
                         int index = GetIndex(x, y);
                         MatchItemElement newItem = boardItems[index];
-                        Vector2 spawnPos = new Vector2(x * itemSize, y * itemSize);
 
                         if (newItem == null)
                         {
-                            newItem = GetItemFromPool(spawnPos);
+                            newItem = GetItemFromPool(GetCellPosition(x, y));
                             boardItems[index] = newItem;
                         }
 
-                        int randomType = GetRandomTypeWithoutMatch(x, y);
-                        newItem.ChangeType(randomType);
+                        newItem.ChangeType(GetRandomTypeWithoutMatch(x, y));
                     }
                 }
                 boardValid = CheckPossibleMoves();
@@ -166,15 +259,16 @@ namespace MatchDefense.Match
             if (itemPool.Count > 0)
             {
                 item = itemPool.Dequeue();
+                item.SetSize(itemSize);
             }
             else
             {
-                item = new MatchItemElement(itemSize, visualTypes);
-                Add(item); // 위젯 내부에 자식 요소로 추가
+                item = new MatchItemElement(itemSize, unitDatas);
+                itemLayer.Add(item);
             }
 
             item.style.display = DisplayStyle.Flex;
-            item.SnapTo(spawnPos); // 수정됨: SwapTo 대신 SnapTo 호출
+            item.SnapTo(spawnPos);
             return item;
         }
 
@@ -185,6 +279,7 @@ namespace MatchDefense.Match
         }
 
         private int GetIndex(int x, int y) => y * WidthCount + x;
+
         private MatchItemElement GetItem(int x, int y)
         {
             if (x < 0 || x >= WidthCount || y < 0 || y >= HeightCount) return null;
@@ -192,10 +287,20 @@ namespace MatchDefense.Match
         }
         #endregion
 
-        #region Input Handling
+        #region Input
+        private int selectedX = -1;
+        private int selectedY = -1;
+        private bool isPointerDown;
+
         private void OnPointerDown(PointerDownEvent evt)
         {
-            if (!IsMatchActive || isProcessing || !isInitialized) return;
+            if (!IsMatchActive || isProcessing || !isInitialized || boardItems == null) return;
+
+            if (canDragCheck != null && !canDragCheck())
+            {
+                onDragBlocked?.Invoke();
+                return;
+            }
 
             ResetHint();
             isPointerDown = true;
@@ -221,10 +326,7 @@ namespace MatchDefense.Match
             {
                 if (x != selectedX || y != selectedY)
                 {
-                    int dx = Mathf.Abs(x - selectedX);
-                    int dy = Mathf.Abs(y - selectedY);
-
-                    if (dx + dy == 1)
+                    if (Mathf.Abs(x - selectedX) + Mathf.Abs(y - selectedY) == 1)
                     {
                         GetItem(selectedX, selectedY)?.Hover(false);
                         coroutineRunner.StartCoroutine(SwapRoutine(selectedX, selectedY, x, y));
@@ -235,8 +337,8 @@ namespace MatchDefense.Match
             }
         }
 
-        private void OnPointerUp(PointerEventBase<PointerUpEvent> evt) { HandlePointerRelease(evt.pointerId); }
-        private void OnPointerUp(PointerEventBase<PointerLeaveEvent> evt) { HandlePointerRelease(evt.pointerId); }
+        private void OnPointerUp(PointerEventBase<PointerUpEvent> evt) => HandlePointerRelease(evt.pointerId);
+        private void OnPointerUp(PointerEventBase<PointerLeaveEvent> evt) => HandlePointerRelease(evt.pointerId);
 
         private void HandlePointerRelease(int pointerId)
         {
@@ -257,13 +359,30 @@ namespace MatchDefense.Match
 
         private bool GetGridIndex(Vector2 localPos, out int x, out int y)
         {
-            x = Mathf.FloorToInt(localPos.x / itemSize);
-            y = Mathf.FloorToInt(localPos.y / itemSize);
+            x = -1;
+            y = -1;
+            if (CellStride <= 0f) return false;
+
+            x = Mathf.FloorToInt(localPos.x / CellStride);
+            y = Mathf.FloorToInt(localPos.y / CellStride);
             return x >= 0 && x < WidthCount && y >= 0 && y < HeightCount;
         }
         #endregion
 
-        #region Core Match Logic
+        #region Core Logic
+        private readonly HashSet<MatchItemElement> matchedSet = new HashSet<MatchItemElement>();
+        private readonly List<List<MatchItemElement>> matchGroups = new List<List<MatchItemElement>>();
+        private readonly Queue<MatchItemElement> bfsQueue = new Queue<MatchItemElement>();
+        private readonly List<MatchItemElement> shuffleBuffer = new List<MatchItemElement>(64);
+        private int activeGroupCount;
+        private bool isProcessing;
+
+        private IEnumerator Wait(float duration)
+        {
+            for (float t = 0f; t < duration; t += Time.unscaledDeltaTime)
+                yield return null;
+        }
+
         private IEnumerator SwapRoutine(int x1, int y1, int x2, int y2)
         {
             isProcessing = true;
@@ -274,30 +393,30 @@ namespace MatchDefense.Match
             boardItems[GetIndex(x1, y1)] = item2;
             boardItems[GetIndex(x2, y2)] = item1;
 
-            Vector2 pos1 = new Vector2(x1 * itemSize, y1 * itemSize);
-            Vector2 pos2 = new Vector2(x2 * itemSize, y2 * itemSize);
+            Vector2 pos1 = GetCellPosition(x1, y1);
+            Vector2 pos2 = GetCellPosition(x2, y2);
 
             item1?.SwapTo(pos2);
             item2?.SwapTo(pos1);
 
-            yield return new WaitForSeconds(0.25f);
+            yield return Wait(0.25f);
 
             FindMatches();
 
             if (matchedSet.Count > 0)
             {
+                onTurnConsumed?.Invoke();
                 ProcessMatches(item1, item2);
-                yield return new WaitForSeconds(0.7f);
+                yield return Wait(0.7f);
                 yield return coroutineRunner.StartCoroutine(CollapseAndRefillRoutine());
             }
             else
             {
-                // 역스왑
                 boardItems[GetIndex(x1, y1)] = item1;
                 boardItems[GetIndex(x2, y2)] = item2;
                 item1?.SwapTo(pos1);
                 item2?.SwapTo(pos2);
-                yield return new WaitForSeconds(0.25f);
+                yield return Wait(0.25f);
                 isProcessing = false;
             }
         }
@@ -340,7 +459,9 @@ namespace MatchDefense.Match
         private void ProcessMatches(MatchItemElement swapped1, MatchItemElement swapped2)
         {
             activeGroupCount = 0;
-            foreach (var group in matchGroups) group.Clear();
+            for (int i = 0; i < matchGroups.Count; i++) matchGroups[i].Clear();
+
+            float neighborDistSqr = (CellStride * 1.5f) * (CellStride * 1.5f);
 
             foreach (var item in matchedSet)
             {
@@ -359,14 +480,10 @@ namespace MatchDefense.Match
                     foreach (var neighbor in matchedSet)
                     {
                         if (currentGroup.Contains(neighbor)) continue;
-                        if (curr.ItemType == neighbor.ItemType)
+                        if (curr.ItemType == neighbor.ItemType && (curr.BoardPos - neighbor.BoardPos).sqrMagnitude < neighborDistSqr)
                         {
-                            float dist = Vector2.Distance(curr.BoardPos, neighbor.BoardPos);
-                            if (dist < itemSize * 1.5f)
-                            {
-                                currentGroup.Add(neighbor);
-                                bfsQueue.Enqueue(neighbor);
-                            }
+                            currentGroup.Add(neighbor);
+                            bfsQueue.Enqueue(neighbor);
                         }
                     }
                 }
@@ -382,17 +499,18 @@ namespace MatchDefense.Match
 
                 int totalToMerge = group.Count - 1;
                 int mergedCount = 0;
+                int groupSize = group.Count;
 
                 if (totalToMerge <= 0)
                 {
-                    if (Defense.UnitSpawnManager.Instance != null)
-                        Defense.UnitSpawnManager.Instance.AddCharge(center.ItemType, group.Count);
+                    onItemMatched?.Invoke(center.ItemType, groupSize);
                     center.PlayMatchEffect(() => ReturnItemToPool(center));
                     continue;
                 }
 
-                foreach (var item in group)
+                for (int j = 0; j < group.Count; j++)
                 {
+                    MatchItemElement item = group[j];
                     if (item != center)
                     {
                         item.MoveAndMerge(center.BoardPos, 0.25f, () =>
@@ -401,8 +519,7 @@ namespace MatchDefense.Match
                             mergedCount++;
                             if (mergedCount >= totalToMerge)
                             {
-                                if (Defense.UnitSpawnManager.Instance != null)
-                                    Defense.UnitSpawnManager.Instance.AddCharge(center.ItemType, group.Count);
+                                onItemMatched?.Invoke(center.ItemType, groupSize);
                                 center.PlayMatchEffect(() => ReturnItemToPool(center));
                             }
                         });
@@ -432,27 +549,23 @@ namespace MatchDefense.Match
                     {
                         boardItems[GetIndex(x, y + emptyCount)] = item;
                         boardItems[GetIndex(x, y)] = null;
-                        item.SwapTo(new Vector2(x * itemSize, (y + emptyCount) * itemSize));
+                        item.SwapTo(GetCellPosition(x, y + emptyCount));
                     }
                 }
 
                 for (int y = 0; y < emptyCount; y++)
                 {
-                    Vector2 startPos = new Vector2(x * itemSize, (y - emptyCount) * itemSize);
-                    Vector2 endPos = new Vector2(x * itemSize, y * itemSize);
+                    Vector2 startPos = GetCellPosition(x, y - emptyCount);
+                    Vector2 endPos = GetCellPosition(x, y);
 
                     MatchItemElement newItem = GetItemFromPool(startPos);
                     newItem.ChangeType(GetRandomTypeWeighted());
                     boardItems[GetIndex(x, y)] = newItem;
 
-                    // 수정됨: 엔진이 순간이동을 인식할 20ms 틈을 준 뒤 목적지로 낙하 시작
-                    newItem.schedule.Execute(() =>
-                    {
-                        newItem.SwapTo(endPos);
-                    }).StartingIn(20);
+                    newItem.schedule.Execute(() => newItem.SwapTo(endPos)).StartingIn(20);
                 }
             }
-            yield return new WaitForSeconds(0.4f);
+            yield return Wait(0.4f);
 
             FindMatches();
             if (matchedSet.Count > 0)
@@ -462,7 +575,7 @@ namespace MatchDefense.Match
                 if (enumerator.MoveNext()) firstMatched = enumerator.Current;
 
                 ProcessMatches(firstMatched, firstMatched);
-                yield return new WaitForSeconds(0.7f);
+                yield return Wait(0.7f);
                 yield return coroutineRunner.StartCoroutine(CollapseAndRefillRoutine());
             }
             else
@@ -475,15 +588,15 @@ namespace MatchDefense.Match
         private IEnumerator ShuffleRoutine()
         {
             isProcessing = true;
-            List<MatchItemElement> activeItems = new List<MatchItemElement>();
+            shuffleBuffer.Clear();
             for (int y = 0; y < HeightCount; y++)
                 for (int x = 0; x < WidthCount; x++)
-                    if (GetItem(x, y) != null) activeItems.Add(GetItem(x, y));
+                    if (GetItem(x, y) != null) shuffleBuffer.Add(GetItem(x, y));
 
-            for (int i = 0; i < activeItems.Count; i++)
+            for (int i = 0; i < shuffleBuffer.Count; i++)
             {
-                int rand = UnityEngine.Random.Range(i, activeItems.Count);
-                (activeItems[i], activeItems[rand]) = (activeItems[rand], activeItems[i]);
+                int rand = UnityEngine.Random.Range(i, shuffleBuffer.Count);
+                (shuffleBuffer[i], shuffleBuffer[rand]) = (shuffleBuffer[rand], shuffleBuffer[i]);
             }
 
             int idx = 0;
@@ -493,14 +606,13 @@ namespace MatchDefense.Match
                 {
                     if (GetItem(x, y) != null)
                     {
-                        MatchItemElement item = activeItems[idx];
+                        MatchItemElement item = shuffleBuffer[idx++];
                         boardItems[GetIndex(x, y)] = item;
-                        item.SwapTo(new Vector2(x * itemSize, y * itemSize));
-                        idx++;
+                        item.SwapTo(GetCellPosition(x, y));
                     }
                 }
             }
-            yield return new WaitForSeconds(0.4f);
+            yield return Wait(0.4f);
 
             FindMatches();
             if (matchedSet.Count > 0)
@@ -509,7 +621,7 @@ namespace MatchDefense.Match
                 var enumerator = matchedSet.GetEnumerator();
                 if (enumerator.MoveNext()) firstMatched = enumerator.Current;
                 ProcessMatches(firstMatched, firstMatched);
-                yield return new WaitForSeconds(0.7f);
+                yield return Wait(0.7f);
                 yield return coroutineRunner.StartCoroutine(CollapseAndRefillRoutine());
             }
             else if (!CheckPossibleMoves()) yield return coroutineRunner.StartCoroutine(ShuffleRoutine());
@@ -517,12 +629,16 @@ namespace MatchDefense.Match
         }
         #endregion
 
-        #region Utility & Logic Checks
+        #region Utility
+        private float totalWeight;
+
         private bool CheckPossibleMoves() => GetPossibleMove(out _, out _, out _, out _);
 
         private bool GetPossibleMove(out int outX1, out int outY1, out int outX2, out int outY2)
         {
             outX1 = outY1 = outX2 = outY2 = -1;
+            if (boardItems == null) return false;
+
             for (int y = 0; y < HeightCount; y++)
             {
                 for (int x = 0; x < WidthCount; x++)
@@ -573,20 +689,21 @@ namespace MatchDefense.Match
         private void CalculateTotalWeight()
         {
             totalWeight = 0f;
-            foreach (float w in itemTypeWeights) totalWeight += w;
+            if (unitDatas == null) return;
+            for (int i = 0; i < unitDatas.Length; i++) totalWeight += unitDatas[i].spawnWeight;
         }
 
         private int GetRandomTypeWeighted()
         {
-            if (totalWeight <= 0f) return 0;
+            if (unitDatas == null || unitDatas.Length == 0 || totalWeight <= 0f) return 0;
             float randomVal = UnityEngine.Random.Range(0f, totalWeight);
             float currentSum = 0f;
-            for (int i = 0; i < itemTypeWeights.Length; i++)
+            for (int i = 0; i < unitDatas.Length; i++)
             {
-                currentSum += itemTypeWeights[i];
+                currentSum += unitDatas[i].spawnWeight;
                 if (randomVal <= currentSum) return i;
             }
-            return itemTypeWeights.Length - 1;
+            return unitDatas.Length - 1;
         }
 
         private int GetRandomTypeWithoutMatch(int x, int y)
@@ -610,18 +727,43 @@ namespace MatchDefense.Match
         }
         #endregion
 
-        #region Hint Animation
+        #region Hint
+        private float idleTimer;
+        private MatchItemElement currentHintItem;
+        private Sequence hintSeq;
+
+        private void OnUpdate()
+        {
+            if (!IsMatchActive || !isInitialized) return;
+
+            if (canDragCheck != null && !canDragCheck())
+            {
+                ResetHint();
+                return;
+            }
+
+            if (!isProcessing && selectedX == -1)
+            {
+                idleTimer += Time.unscaledDeltaTime;
+                if (idleTimer >= HintDelay && currentHintItem == null) ShowHint();
+            }
+            else
+            {
+                ResetHint();
+            }
+        }
+
         private void ShowHint()
         {
             if (GetPossibleMove(out int x1, out int y1, out int x2, out int y2))
             {
                 currentHintItem = GetItem(x1, y1);
                 if (currentHintItem == null) return;
-                hintOriginalPos = currentHintItem.BoardPos;
-                Vector2 moveDir = (new Vector2(x2 * itemSize, y2 * itemSize) - hintOriginalPos).normalized * (itemSize * 0.3f);
-                hintSeq = DOTween.Sequence();
-                hintSeq.Append(DOVirtual.Vector2(hintOriginalPos, hintOriginalPos + moveDir, 0.15f, v => { currentHintItem.style.left = v.x; currentHintItem.style.top = v.y; }).SetEase(Ease.OutQuad));
-                hintSeq.Append(DOVirtual.Vector2(hintOriginalPos + moveDir, hintOriginalPos, 0.15f, v => { currentHintItem.style.left = v.x; currentHintItem.style.top = v.y; }).SetEase(Ease.InQuad));
+
+                Vector2 moveDir = (GetCellPosition(x2, y2) - currentHintItem.BoardPos).normalized * (itemSize * 0.3f);
+                hintSeq = DOTween.Sequence().SetUpdate(true);
+                hintSeq.Append(DOVirtual.Vector2(Vector2.zero, moveDir, 0.15f, v => currentHintItem.style.translate = new Translate(v.x, v.y)).SetEase(Ease.OutQuad));
+                hintSeq.Append(DOVirtual.Vector2(moveDir, Vector2.zero, 0.15f, v => currentHintItem.style.translate = new Translate(v.x, v.y)).SetEase(Ease.InQuad));
                 hintSeq.AppendInterval(1.0f);
                 hintSeq.SetLoops(-1);
             }
@@ -633,47 +775,67 @@ namespace MatchDefense.Match
             if (currentHintItem != null)
             {
                 hintSeq?.Kill();
-                currentHintItem.style.left = hintOriginalPos.x;
-                currentHintItem.style.top = hintOriginalPos.y;
+                hintSeq = null;
+                currentHintItem.style.translate = new Translate(0f, 0f);
                 currentHintItem.style.scale = new Scale(Vector3.one);
                 currentHintItem = null;
             }
         }
         #endregion
 
-        // ==============================================================================
-        // 내부 비공개 클래스 (MatchItemElement 코드를 위젯 안으로 완전히 숨김)
-        // ==============================================================================
+        #region Item Element
         private class MatchItemElement : VisualElement
         {
+            private static readonly StyleList<StylePropertyName> TransitionProps = new StyleList<StylePropertyName>(new List<StylePropertyName>
+            {
+                new StylePropertyName("left"), new StylePropertyName("top"), new StylePropertyName("scale")
+            });
+            private static readonly StyleList<TimeValue> DefaultTransitionDurations = new StyleList<TimeValue>(new List<TimeValue>
+            {
+                new TimeValue(0.25f, TimeUnit.Second), new TimeValue(0.25f, TimeUnit.Second), new TimeValue(0.1f, TimeUnit.Second)
+            });
+            private static readonly StyleList<TimeValue> SnapTransitionDurations = new StyleList<TimeValue>(new List<TimeValue>
+            {
+                new TimeValue(0f), new TimeValue(0f), new TimeValue(0.1f, TimeUnit.Second)
+            });
+            private static readonly StyleList<EasingFunction> TransitionEasings = new StyleList<EasingFunction>(new List<EasingFunction>
+            {
+                new EasingFunction(EasingMode.EaseOut), new EasingFunction(EasingMode.EaseOut), new EasingFunction(EasingMode.EaseInOut)
+            });
+
             public int ItemType { get; private set; }
             public Vector2 BoardPos { get; private set; }
-            private ItemVisual[] visualTypes;
+
+            private readonly MatchUnitData[] unitDatas;
+            private readonly Action restoreTransitionAction;
             private IVisualElementScheduledItem stopMotionTask;
 
-            public MatchItemElement(float size, ItemVisual[] visuals)
+            public MatchItemElement(float size, MatchUnitData[] datas)
             {
-                visualTypes = visuals;
+                unitDatas = datas;
+                restoreTransitionAction = () => style.transitionDuration = DefaultTransitionDurations;
+
+                AddToClassList(ItemClass);
+                pickingMode = PickingMode.Ignore;
                 style.position = Position.Absolute;
-                style.width = size;
-                style.height = size;
+                SetSize(size);
                 style.transformOrigin = new TransformOrigin(Length.Percent(50), Length.Percent(50));
 
-                style.transitionProperty = new StyleList<StylePropertyName>(new List<StylePropertyName> {
-                    new StylePropertyName("left"), new StylePropertyName("top"), new StylePropertyName("scale")
-                });
-                style.transitionDuration = new StyleList<TimeValue>(new List<TimeValue> {
-                    new TimeValue(0.25f, TimeUnit.Second), new TimeValue(0.25f, TimeUnit.Second), new TimeValue(0.1f, TimeUnit.Second)
-                });
-                style.transitionTimingFunction = new StyleList<EasingFunction>(new List<EasingFunction> {
-                    new EasingFunction(EasingMode.EaseOut), new EasingFunction(EasingMode.EaseOut), new EasingFunction(EasingMode.EaseInOut)
-                });
+                style.transitionProperty = TransitionProps;
+                style.transitionDuration = DefaultTransitionDurations;
+                style.transitionTimingFunction = TransitionEasings;
+            }
+
+            public void SetSize(float size)
+            {
+                style.width = size;
+                style.height = size;
             }
 
             public void ChangeType(int typeIndex)
             {
                 ItemType = typeIndex;
-                style.backgroundImage = new StyleBackground(visualTypes[typeIndex].defaultSprite);
+                style.backgroundImage = new StyleBackground(unitDatas[typeIndex].itemVisual.defaultSprite);
             }
 
             public void SwapTo(Vector2 targetPos)
@@ -683,29 +845,13 @@ namespace MatchDefense.Match
                 style.top = targetPos.y;
             }
 
-            // 추가됨: 이동 트랜지션을 0초로 강제 설정하여 즉시 이동시킴
             public void SnapTo(Vector2 targetPos)
             {
                 BoardPos = targetPos;
-
-                style.transitionDuration = new StyleList<TimeValue>(new List<TimeValue> {
-                    new TimeValue(0),
-                    new TimeValue(0),
-                    new TimeValue(0.1f, TimeUnit.Second) // 스케일(크기) 애니메이션은 유지
-                });
-
+                style.transitionDuration = SnapTransitionDurations;
                 style.left = targetPos.x;
                 style.top = targetPos.y;
-
-                // 10ms 뒤에 다시 원래 트랜지션 시간 복구
-                schedule.Execute(() =>
-                {
-                    style.transitionDuration = new StyleList<TimeValue>(new List<TimeValue> {
-                        new TimeValue(0.25f, TimeUnit.Second),
-                        new TimeValue(0.25f, TimeUnit.Second),
-                        new TimeValue(0.1f, TimeUnit.Second)
-                    });
-                }).StartingIn(10);
+                schedule.Execute(restoreTransitionAction).StartingIn(10);
             }
 
             public void Hover(bool isHover)
@@ -733,7 +879,7 @@ namespace MatchDefense.Match
             public void PlayMatchEffect(Action onComplete)
             {
                 BringToFront();
-                var frames = visualTypes[ItemType].mashSprites;
+                var frames = unitDatas[ItemType].itemVisual.mashSprites;
                 if (frames == null || frames.Length == 0) { onComplete?.Invoke(); return; }
 
                 int frameIndex = 0;
@@ -750,11 +896,12 @@ namespace MatchDefense.Match
                     schedule.Execute(() =>
                     {
                         style.scale = new Scale(Vector3.one);
-                        style.backgroundImage = new StyleBackground(visualTypes[ItemType].defaultSprite);
+                        style.backgroundImage = new StyleBackground(unitDatas[ItemType].itemVisual.defaultSprite);
                         onComplete?.Invoke();
                     }).StartingIn(150);
                 }).StartingIn(400);
             }
         }
+        #endregion
     }
 }

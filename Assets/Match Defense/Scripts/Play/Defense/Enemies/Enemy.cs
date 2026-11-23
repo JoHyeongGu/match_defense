@@ -28,12 +28,12 @@ namespace MatchDefense.Defense
         private float pathLength;
         private Vector3 initialMeshScale;
 
-        // UI 캐싱
         private Camera mainCam;
         private RectTransform hpBarInstance;
         private Image hpFillImage;
         private bool isHpBarActive = false;
-
+        private bool isDead;
+        
         private static readonly int CurrentAnimIndexId = Shader.PropertyToID("_CurrentAnimIndex");
         private static readonly int TransitionStartTimeId = Shader.PropertyToID("_TransitionStartTime");
         private static readonly int StartTime0Id = Shader.PropertyToID("_StartTime0");
@@ -158,6 +158,11 @@ namespace MatchDefense.Defense
 
         protected override async void Die()
         {
+            if (isDead) return;
+            isDead = true;
+
+            Match.MatchManager.Instance?.AddTurn(1);
+
             pathTween?.Pause();
 
             if (hpBarInstance != null) hpBarInstance.gameObject.SetActive(false);

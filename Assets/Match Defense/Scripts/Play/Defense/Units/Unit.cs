@@ -4,6 +4,7 @@ using UnityEngine.EventSystems;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
+using MatchDefense.Match;
 
 namespace MatchDefense.Defense
 {
@@ -35,14 +36,14 @@ namespace MatchDefense.Defense
             if (UnitBoard.Instance != null)
                 GridPos = UnitBoard.Instance.WorldToCell(transform.position);
 
-            if (UnitSpawnManager.Instance != null)
-                UnitSpawnManager.Instance.AddSpawnedUnit(this);
+            if (MatchManager.Instance != null)
+                MatchManager.Instance.AddSpawnedUnit(this);
         }
 
         protected virtual void OnDestroy()
         {
-            if (UnitSpawnManager.Instance != null)
-                UnitSpawnManager.Instance.RemoveSpawnedUnit(this);
+            if (MatchManager.Instance != null)
+                MatchManager.Instance.RemoveSpawnedUnit(this);
         }
 
         private void Update()
@@ -92,7 +93,7 @@ namespace MatchDefense.Defense
             {
                 UnitBoard.Instance?.ShowUnitRange(transform.position, range);
             }
-            else if (!UnitSpawnManager.IsDraggingUnit)
+            else if (!MatchManager.IsDraggingUnit)
             {
                 Unit clickedUnit = isHit ? hit.transform.GetComponentInParent<Unit>() : null;
                 if (clickedUnit == null)
@@ -103,7 +104,6 @@ namespace MatchDefense.Defense
             }
         }
         #endregion
-
 
         #region Attack
         protected virtual void Attack(Character target) => target.Attacked(damage);
@@ -139,7 +139,6 @@ namespace MatchDefense.Defense
         {
             targets.Clear();
 
-            // 1. 적(Enemy) 탐색
             if (targetType == TargetType.Enemy || targetType == TargetType.Both)
             {
                 if (EnemySpawner.Instance != null)
@@ -151,27 +150,28 @@ namespace MatchDefense.Defense
                     }
                 }
             }
-            // 2. 아군(Unit) 탐색
+
             if (targetType == TargetType.Ally || targetType == TargetType.Both)
             {
-                if (UnitSpawnManager.Instance != null)
+                if (MatchManager.Instance != null)
                 {
-                    foreach (var unit in UnitSpawnManager.Instance.SpawnedUnits)
+                    foreach (var unit in MatchManager.Instance.SpawnedUnits)
                     {
                         if (unit != null && unit != this && unit.IsAlive && IsInRange(unit))
                             targets.Add(unit);
                     }
                 }
             }
+
             if (targets.Count == 0) return false;
 
             targets.Sort((a, b) =>
             {
                 if (a is Enemy enemyA && b is Enemy enemyB)
-                    return enemyB.TraveledDistance.CompareTo(enemyA.TraveledDistance); // 가장 앞선 적 우선
+                    return enemyB.TraveledDistance.CompareTo(enemyA.TraveledDistance);
 
                 return Vector3.Distance(transform.position, a.transform.position)
-                    .CompareTo(Vector3.Distance(transform.position, b.transform.position)); // 가장 가까운 아군 우선
+                    .CompareTo(Vector3.Distance(transform.position, b.transform.position));
             });
 
             if (atkTargetCount >= 0 && targets.Count > atkTargetCount)

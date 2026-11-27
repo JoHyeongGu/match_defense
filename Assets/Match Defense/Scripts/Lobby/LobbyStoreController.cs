@@ -131,8 +131,8 @@ namespace MatchDefense.Lobby
             if (_isAnimating || ProgramManager.Instance == null) return;
 
             bool isTutorial = IsTutorialGachaStep();
-            string guaranteedId = isTutorial ? _tutorialGuaranteedUnitId : null;
-            bool isFree = isTutorial && _freeGachaDuringTutorial;
+            string guaranteedId = isTutorial ? (string.IsNullOrEmpty(_tutorialGuaranteedUnitId) ? "strawberryjam" : _tutorialGuaranteedUnitId) : null;
+            bool isFree = isTutorial && (_freeGachaDuringTutorial || ProgramManager.Instance.Coins < ProgramManager.Instance.GachaCostCoins);
 
             GachaResult result = ProgramManager.Instance.DrawUnitGacha(guaranteedId, isFree);
             if (!result.success || result.unit == null)
@@ -141,6 +141,7 @@ namespace MatchDefense.Lobby
                 return;
             }
 
+            if (isTutorial) TutorialManager.Instance?.SetOverlayHiddenTemporarily(true);
             _runner.StartCoroutine(PlayGachaPresentationRoutine(result));
         }
 
@@ -284,6 +285,7 @@ namespace MatchDefense.Lobby
         {
             SoundManager.Instance?.PlaySFX(SfxType.ButtonClick);
             _resultOverlay?.AddToClassList(HideClass);
+            TutorialManager.Instance?.SetOverlayHiddenTemporarily(false);
             TutorialManager.Instance?.NotifyGachaDrawn();
         }
 

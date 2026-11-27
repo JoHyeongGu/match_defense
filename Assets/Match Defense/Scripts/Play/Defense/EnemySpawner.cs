@@ -16,9 +16,7 @@ namespace MatchDefense.Defense
     [Serializable]
     public class WaveEnemyRule
     {
-        [Tooltip("Start wave (inclusive)")]
         public int startWave = 1;
-        [Tooltip("End wave (inclusive, <= 0 for unlimited)")]
         public int endWave = 5;
 
         [Header("Spawn Pool")]
@@ -28,7 +26,7 @@ namespace MatchDefense.Defense
         [Min(0.1f)] public float hpMultiplier = 1f;
         [Min(0.1f)] public float speedMultiplier = 1f;
 
-        [Header("Optional Wave Count / Interval Override (0 = Default Formula)")]
+        [Header("Optional Wave Override")]
         public int overrideEnemyCount = 0;
         public float overrideSpawnInterval = 0f;
 
@@ -42,18 +40,15 @@ namespace MatchDefense.Defense
 
     public class EnemySpawner : MonoBehaviour
     {
-        [Header("<color=yellow>Default Spawn Pool (Stage Default)</color>")]
-        [Tooltip("Default enemy prefabs and spawn weights when no wave rule matches")]
+        [Header("<color=yellow>Default Spawn Pool</color>")]
         [SerializeField] private EnemySpawnWeight[] defaultEnemyPool;
         [FormerlySerializedAs("enemyPrefab")]
-        [Tooltip("Legacy single fallback prefab (used if defaultEnemyPool is empty)")]
         [SerializeField] private GameObject fallbackEnemyPrefab;
 
-        [Header("<color=yellow>Wave-Specific Rules</color>")]
-        [Tooltip("Per-wave enemy pool, weight, and stat multiplier rules")]
+        [Header("<color=yellow>Wave Rules</color>")]
         [SerializeField] private WaveEnemyRule[] waveRules;
 
-        [Header("<color=yellow>Endless Scaling (After Wave 40)</color>")]
+        [Header("<color=yellow>Endless Scaling</color>")]
         [SerializeField] private float endlessHpGrowthPerWave = 0.08f;
         [SerializeField] private float endlessSpeedGrowthPerWave = 0.015f;
 
@@ -79,9 +74,7 @@ namespace MatchDefense.Defense
         {
             InitPath();
             if (PathWaypoints != null && PathWaypoints.Length > 0)
-            {
                 spawnPoint = PathWaypoints[0];
-            }
         }
 
         #region Spawn
@@ -130,19 +123,60 @@ namespace MatchDefense.Defense
 
         public Enemy SpawnSpecificEnemy(GameObject prefab, float hpMultiplier = 1f, float speedMultiplier = 1f)
         {
+            return SpawnEnemyAtProgress(prefab, 0f, hpMultiplier, speedMultiplier);
+        }
+
+        public Enemy SpawnEnemyAtProgress(GameObject prefab, float startProgress, float hpMultiplier = 1f, float speedMultiplier = 1f)
+        {
             if (prefab == null) return null;
             if (PathWaypoints == null || PathWaypoints.Length == 0) InitPath();
             if (PathWaypoints == null || PathWaypoints.Length == 0) return null;
 
-            GameObject obj = Instantiate(prefab, spawnPoint, Quaternion.identity);
+            Vector3[] subPath = BuildRemainingWaypoints(startProgress, out Vector3 startPos);
+            GameObject obj = Instantiate(prefab, startPos, Quaternion.identity);
             Enemy enemy = obj.GetComponent<Enemy>();
             if (enemy != null)
             {
                 ActiveEnemies.Add(enemy);
-                enemy.Init(PathWaypoints, TotalPathLength, hpMultiplier, speedMultiplier);
+                enemy.Init(subPath, TotalPathLength, hpMultiplier, speedMultiplier, startProgress);
                 OnEnemySpawned?.Invoke(enemy);
             }
             return enemy;
+        }
+
+        private Vector3[] BuildRemainingWaypoints(float progress, out Vector3 startPos)
+        {
+            if (progress <= 0.001f || PathWaypoints.Length < 2 || TotalPathLength <= 0.001f)
+            {
+                startPos = PathWaypoints[0];
+                return PathWaypoints;
+            }
+
+            float targetDist = Mathf.Clamp01(progress) * TotalPathLength;
+            float accum = 0f;
+            List<Vector3> remaining = new List<Vector3>(PathWaypoints.Length);
+
+            for (int i = 0; i < PathWaypoints.Length - 1; i++)
+            {
+                Vector3 a = PathWaypoints[i];
+                Vector3 b = PathWaypoints[i + 1];
+                float segLen = Vector3.Distance(a, b);
+
+                if (accum + segLen >= targetDist)
+                {
+                    float t = segLen > 0.0001f ? (targetDist - accum) / segLen : 0f;
+                    startPos = Vector3.Lerp(a, b, t);
+                    remaining.Add(startPos);
+                    for (int j = i + 1; j < PathWaypoints.Length; j++)
+                        remaining.Add(PathWaypoints[j]);
+                    return remaining.ToArray();
+                }
+
+                accum += segLen;
+            }
+
+            startPos = PathWaypoints[PathWaypoints.Length - 1];
+            return new[] { startPos };
         }
 
         public WaveEnemyRule FindRuleForWave(int wave)
@@ -199,9 +233,7 @@ namespace MatchDefense.Defense
             {
                 spawnPoint = PathWaypoints[0];
                 for (int i = 0; i < PathWaypoints.Length - 1; i++)
-                {
                     TotalPathLength += Vector3.Distance(PathWaypoints[i], PathWaypoints[i + 1]);
-                }
             }
         }
         #endregion

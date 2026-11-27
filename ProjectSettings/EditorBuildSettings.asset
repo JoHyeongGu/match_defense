@@ -12,6 +12,33 @@ EditorBuildSettings:
     path: Assets/Match Defense/Scenes/Stage_01.unity
     guid: c89fcc82dcfd86042959cb1a270c9d95
   - enabled: 1
+    path: Assets/Match Defense/Scenes/Stage_02.unity
+    guid: 48f2ac58b77c60e4e9060f4c7436c43a
+  - enabled: 1
+    path: Assets/Match Defense/Scenes/Stage_03.unity
+    guid: 47993f63ec7826d4db39326bfb433530
+  - enabled: 1
+    path: Assets/Match Defense/Scenes/Stage_04.unity
+    guid: 724bee8f11c694342b5d16a7fd3edf6a
+  - enabled: 1
+    path: Assets/Match Defense/Scenes/Stage_05.unity
+    guid: 42cf1542801482c45be9a6782ffc0926
+  - enabled: 1
+    path: Assets/Match Defense/Scenes/Stage_06.unity
+    guid: 2278cc42e213cea4982225510b1207d0
+  - enabled: 1
+    path: Assets/Match Defense/Scenes/Stage_07.unity
+    guid: ec689adc09ab44645bae314d2c2fd43c
+  - enabled: 1
+    path: Assets/Match Defense/Scenes/Stage_08.unity
+    guid: fafdbe44b03b2104a9780ebc9a931e29
+  - enabled: 1
+    path: Assets/Match Defense/Scenes/Stage_09.unity
+    guid: 99eeb2a6caa2a2542a3cfb37c663b3dd
+  - enabled: 1
+    path: Assets/Match Defense/Scenes/Stage_10.unity
+    guid: 8640867efff366343a0d5b23f312147d
+  - enabled: 1
     path: Assets/Match Defense/Scenes/Play.unity
     guid: 2f8e20dc151f90940a95f314718ff479
   m_configObjects:

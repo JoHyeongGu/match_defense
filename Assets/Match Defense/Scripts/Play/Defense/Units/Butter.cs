@@ -6,8 +6,8 @@ namespace MatchDefense.Defense.Units
     public class Butter : Unit
     {
         [Header("<color=yellow>Butter</color>")]
-        [SerializeField] private float atkSpeedBuff = 0.5f;
-        [SerializeField] private float atkDamageBuff = 0.5f;
+        [SerializeField] private float atkSpeedBuff = 0.65f;
+        [SerializeField] private float atkDamageBuff = 1.35f;
         [SerializeField] private float buffDuration = 5f;
         [SerializeField] private Transform butter;
 
@@ -30,9 +30,9 @@ namespace MatchDefense.Defense.Units
             {
                 unitTarget.AddBuff(
                     buffKey,
-                    action: () => InsertBuff(target as Unit),
+                    action: () => InsertBuff(unitTarget),
                     duration: buffDuration,
-                    release: () => RemoveBuff(target as Unit)
+                    release: () => RemoveBuff(unitTarget)
                 );
             }
 
@@ -48,14 +48,16 @@ namespace MatchDefense.Defense.Units
 
         private void InsertBuff(Unit target)
         {
-            target.cooldown *= atkSpeedBuff;
-            target.damage *= atkDamageBuff;
+            if (target == null) return;
+            target.cooldown *= Mathf.Clamp(atkSpeedBuff, 0.25f, 1f);
+            target.damage *= Mathf.Max(1f, atkDamageBuff);
         }
 
         private void RemoveBuff(Unit target)
         {
-            target.cooldown /= atkSpeedBuff;
-            target.damage /= atkDamageBuff;
+            if (target == null) return;
+            target.cooldown /= Mathf.Clamp(atkSpeedBuff, 0.25f, 1f);
+            target.damage /= Mathf.Max(1f, atkDamageBuff);
         }
     }
 }

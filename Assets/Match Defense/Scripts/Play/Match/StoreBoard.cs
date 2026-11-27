@@ -109,6 +109,7 @@ namespace MatchDefense.Match
         public StoreBoard()
         {
             AddToClassList(BoardClass);
+            style.justifyContent = Justify.Center;
 
             for (int i = 0; i < MaxSlots; i++)
             {
@@ -407,8 +408,9 @@ namespace MatchDefense.Match
 
             private void ApplyLockState()
             {
-                EnableInClassList(FrameLockedClass, !IsUnlocked);
-                lockOverlay.style.display = IsUnlocked ? DisplayStyle.None : DisplayStyle.Flex;
+                style.display = (IsBound && IsUnlocked) ? DisplayStyle.Flex : DisplayStyle.None;
+                EnableInClassList(FrameLockedClass, false);
+                lockOverlay.style.display = DisplayStyle.None;
 
                 thumbRoot.style.display = IsBound ? DisplayStyle.Flex : DisplayStyle.None;
                 sliderElement.style.display = IsUnlocked ? DisplayStyle.Flex : DisplayStyle.None;

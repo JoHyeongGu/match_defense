@@ -137,9 +137,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MatchDefense.Defense.Units.Pretzel
   maxHP: 3
-  damage: 0.3
-  cooldown: 0.7
-  range: 3
+  damage: 1.6
+  cooldown: 0.85
+  range: 3.6
   targetType: 0
   atkCount: 1
   atkInterval: 0

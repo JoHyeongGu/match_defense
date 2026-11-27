@@ -21,7 +21,7 @@
     flex-direction: column;
     justify-content: space-between;
     align-items: stretch;
-    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Rects.png?fileID=-981860313&guid=d8cd81cc99e6902459f2c392b35ef169&type=3#Clay_Rects_4");
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Rects.png?fileID=496504100&guid=d8cd81cc99e6902459f2c392b35ef169&type=3#Clay_Rects_11");
     -unity-background-image-tint-color: rgb(110, 62, 30);
     -unity-slice-left: 10;
     -unity-slice-top: 10;
@@ -85,8 +85,6 @@
     padding: 26px 28px;
     margin-bottom: 26px;
     flex-direction: column;
-    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Rects.png?fileID=-981860313&guid=d8cd81cc99e6902459f2c392b35ef169&type=3#Clay_Rects_4");
-    -unity-background-image-tint-color: rgb(74, 40, 18);
     -unity-slice-left: 8;
     -unity-slice-top: 8;
     -unity-slice-right: 8;
@@ -196,10 +194,21 @@
     color: rgb(255, 245, 232);
 }
 
-.setting-toggle .toggle-on-txt { display: none; }
-.setting-toggle .toggle-off-txt { display: flex; }
-.setting-toggle:checked .toggle-on-txt { display: flex; }
-.setting-toggle:checked .toggle-off-txt { display: none; }
+.setting-toggle .toggle-on-txt {
+    display: none;
+}
+
+.setting-toggle .toggle-off-txt {
+    display: flex;
+}
+
+.setting-toggle:checked .toggle-on-txt {
+    display: flex;
+}
+
+.setting-toggle:checked .toggle-off-txt {
+    display: none;
+}
 
 .pause-actions {
     width: 100%;

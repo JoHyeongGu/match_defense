@@ -82,6 +82,21 @@ namespace MatchDefense.Lobby
             if (ProgramManager.Instance == null || _pageRoot == null) return;
 
             var owned = ProgramManager.Instance.GetAllOwnedUnits();
+            bool isEquipTutorial = TutorialManager.Instance != null
+                && TutorialManager.Instance.IsTutorialRunning;
+
+            if (isEquipTutorial)
+            {
+                for (int i = 0; i < owned.Count; i++)
+                {
+                    if (!ProgramManager.Instance.IsUnitEquipped(owned[i].unitId))
+                    {
+                        _selectedUnitId = owned[i].unitId;
+                        break;
+                    }
+                }
+            }
+
             if (string.IsNullOrEmpty(_selectedUnitId) && owned.Count > 0)
                 _selectedUnitId = owned[owned.Count - 1].unitId;
 

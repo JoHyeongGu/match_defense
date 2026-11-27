@@ -132,6 +132,9 @@ namespace MatchDefense.Defense
                     if (!FindTargets()) break;
                 }
 
+                if (targets.Count > 0 && targets[0] != null && targets[0].IsAlive)
+                    LookAt(targets[0]);
+
                 foreach (var target in targets)
                 {
                     if (target == null || !target.IsAlive) continue;

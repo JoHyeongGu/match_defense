@@ -137,8 +137,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MatchDefense.Defense.Units.Baguette
   maxHP: 3
-  damage: 7
-  cooldown: 5
+  damage: 9
+  cooldown: 3.5
   range: 2
   targetType: 0
   atkCount: 1

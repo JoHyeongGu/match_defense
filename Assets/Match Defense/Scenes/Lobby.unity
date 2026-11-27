@@ -2543,33 +2543,61 @@ MonoBehaviour:
     subStages:
     - subTitleLocalizationKey: stage_sub_1
       sceneName: Stage_01
-      targetClearWave: 40
-      clearRewardCoins: 102
+      targetClearWave: 6
+      clearRewardCoins: 450
       coinsPerRemainingTurn: 10
-      starHpThresholds:
-      - 0.18
-      - 0.36
-      - 0.54
-      - 0.72
-      - 0.9
     - subTitleLocalizationKey: stage_sub_2
-      sceneName: Stage_01
-      targetClearWave: 40
-      clearRewardCoins: 100
+      sceneName: Stage_02
+      targetClearWave: 10
+      clearRewardCoins: 150
       coinsPerRemainingTurn: 10
-      starHpThresholds:
-      - 0.2
-      - 0.4
-      - 0.6
-      - 0.8
-      - 0.95
+    - subTitleLocalizationKey: stage_sub_3
+      sceneName: Stage_03
+      targetClearWave: 14
+      clearRewardCoins: 180
+      coinsPerRemainingTurn: 10
+    - subTitleLocalizationKey: stage_sub_4
+      sceneName: Stage_04
+      targetClearWave: 18
+      clearRewardCoins: 220
+      coinsPerRemainingTurn: 10
+    - subTitleLocalizationKey: stage_sub_5
+      sceneName: Stage_05
+      targetClearWave: 20
+      clearRewardCoins: 260
+      coinsPerRemainingTurn: 10
+    - subTitleLocalizationKey: stage_sub_6
+      sceneName: Stage_06
+      targetClearWave: 22
+      clearRewardCoins: 300
+      coinsPerRemainingTurn: 10
+    - subTitleLocalizationKey: stage_sub_7
+      sceneName: Stage_07
+      targetClearWave: 24
+      clearRewardCoins: 350
+      coinsPerRemainingTurn: 10
+    - subTitleLocalizationKey: stage_sub_8
+      sceneName: Stage_08
+      targetClearWave: 26
+      clearRewardCoins: 400
+      coinsPerRemainingTurn: 10
+    - subTitleLocalizationKey: stage_sub_9
+      sceneName: Stage_09
+      targetClearWave: 30
+      clearRewardCoins: 450
+      coinsPerRemainingTurn: 12
+    - subTitleLocalizationKey: stage_sub_10
+      sceneName: Stage_10
+      targetClearWave: 30
+      clearRewardCoins: 600
+      coinsPerRemainingTurn: 15
   questDefinitions:
   - questId: quest_match_5
     titleLocalizationKey: quest_match_5_title
     fallbackTitle: "\uB9E4\uCE58 5\uD68C \uC131\uACF5"
     questType: 0
     targetCount: 5
-    rewardCoins: 100
+    rewardCoins: 500
   - questId: quest_place_3
     titleLocalizationKey: quest_place_3_title
     fallbackTitle: "\uC720\uB2DB 3\uD68C \uBC30\uCE58"
@@ -2599,9 +2627,10 @@ MonoBehaviour:
     fallbackTitle: "\uC2A4\uD14C\uC774\uC9C0 1\uD68C \uD074\uB9AC\uC5B4"
     questType: 5
     targetCount: 1
-    rewardCoins: 300
+    rewardCoins: 600
   gachaCostCoins: 1000
-  initialCoins: 1000
+  initialCoins: 0
+  coinIconSprite: {fileID: 0}
 --- !u!1931382934 &547941671
 PanelRenderer:
   m_ObjectHideFlags: 0
@@ -3817,15 +3846,43 @@ MonoBehaviour:
   onlyRunIfNotCompleted: 1
   defaultWatchEnemyTimeScale: 2.5
   steps:
-  - stepId: 'tut_lobby_welcome '
+  - stepId: tut_lobby_welcome
     messageLocalizationKey: tut_lobby_welcome
     highlightType: 0
     targetElementName: 
-    highlightPadding: 0
+    highlightPadding: 12
     worldSpotlightSize: {x: 0, y: 0}
     targetWorldTransform: {fileID: 0}
     completionTrigger: 0
-    requiredCount: 0
+    requiredCount: 1
+    grantTutorialUnitOnEnter: 0
+    spawnTutorialEnemyPrefab: {fileID: 0}
+    pauseGameDuringStep: 0
+    stepTimeScale: 1
+    dialogPosition: 0
+  - stepId: tut_lobby_open_quest
+    messageLocalizationKey: tut_lobby_open_quest
+    highlightType: 1
+    targetElementName: quest-btn
+    highlightPadding: 12
+    worldSpotlightSize: {x: 0, y: 0}
+    targetWorldTransform: {fileID: 0}
+    completionTrigger: 1
+    requiredCount: 1
+    grantTutorialUnitOnEnter: 0
+    spawnTutorialEnemyPrefab: {fileID: 0}
+    pauseGameDuringStep: 0
+    stepTimeScale: 1
+    dialogPosition: 0
+  - stepId: tut_lobby_claim_quest
+    messageLocalizationKey: tut_lobby_claim_quest
+    highlightType: 1
+    targetElementName: quest-claim-ready-btn
+    highlightPadding: 12
+    worldSpotlightSize: {x: 0, y: 0}
+    targetWorldTransform: {fileID: 0}
+    completionTrigger: 8
+    requiredCount: 1
     grantTutorialUnitOnEnter: 0
     spawnTutorialEnemyPrefab: {fileID: 0}
     pauseGameDuringStep: 0
@@ -3835,11 +3892,11 @@ MonoBehaviour:
     messageLocalizationKey: tut_lobby_open_store
     highlightType: 1
     targetElementName: store-btn
-    highlightPadding: 0
+    highlightPadding: 12
     worldSpotlightSize: {x: 0, y: 0}
     targetWorldTransform: {fileID: 0}
     completionTrigger: 1
-    requiredCount: 0
+    requiredCount: 1
     grantTutorialUnitOnEnter: 0
     spawnTutorialEnemyPrefab: {fileID: 0}
     pauseGameDuringStep: 0
@@ -3849,11 +3906,11 @@ MonoBehaviour:
     messageLocalizationKey: tut_lobby_draw_gacha
     highlightType: 1
     targetElementName: gacha-draw-btn
-    highlightPadding: 0
+    highlightPadding: 12
     worldSpotlightSize: {x: 0, y: 0}
     targetWorldTransform: {fileID: 0}
     completionTrigger: 6
-    requiredCount: 0
+    requiredCount: 1
     grantTutorialUnitOnEnter: 0
     spawnTutorialEnemyPrefab: {fileID: 0}
     pauseGameDuringStep: 0
@@ -3863,11 +3920,11 @@ MonoBehaviour:
     messageLocalizationKey: tut_lobby_open_inven
     highlightType: 1
     targetElementName: inven-btn
-    highlightPadding: 0
+    highlightPadding: 12
     worldSpotlightSize: {x: 0, y: 0}
     targetWorldTransform: {fileID: 0}
     completionTrigger: 1
-    requiredCount: 0
+    requiredCount: 1
     grantTutorialUnitOnEnter: 0
     spawnTutorialEnemyPrefab: {fileID: 0}
     pauseGameDuringStep: 0
@@ -3877,30 +3934,30 @@ MonoBehaviour:
     messageLocalizationKey: tut_lobby_equip_unit
     highlightType: 1
     targetElementName: detail-equip-btn
-    highlightPadding: 0
+    highlightPadding: 12
     worldSpotlightSize: {x: 0, y: 0}
     targetWorldTransform: {fileID: 0}
     completionTrigger: 7
-    requiredCount: 0
+    requiredCount: 1
     grantTutorialUnitOnEnter: 0
     spawnTutorialEnemyPrefab: {fileID: 0}
     pauseGameDuringStep: 0
     stepTimeScale: 1
-    dialogPosition: 0
+    dialogPosition: 2
   - stepId: tut_lobby_done
     messageLocalizationKey: tut_lobby_done
     highlightType: 0
-    targetElementName: detail-equip-btn
-    highlightPadding: 0
+    targetElementName: 
+    highlightPadding: 12
     worldSpotlightSize: {x: 0, y: 0}
     targetWorldTransform: {fileID: 0}
     completionTrigger: 0
-    requiredCount: 0
+    requiredCount: 1
     grantTutorialUnitOnEnter: 0
     spawnTutorialEnemyPrefab: {fileID: 0}
     pauseGameDuringStep: 0
     stepTimeScale: 1
-    dialogPosition: 0
+    dialogPosition: 2
   enemyIntroTriggers: []
 --- !u!43 &927097783
 Mesh:
@@ -8034,7 +8091,7 @@ MonoBehaviour:
   worldSlideDistance: 22
   worldSlideDuration: 0.75
   tutorialGuaranteedUnitId: strawberryjam
-  freeGachaDuringTutorial: 1
+  freeGachaDuringTutorial: 0
 --- !u!1931382934 &2082880514
 PanelRenderer:
   m_ObjectHideFlags: 0

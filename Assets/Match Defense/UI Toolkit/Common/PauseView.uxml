@@ -1,51 +1,50 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="PauseStyle.uss" />
+    <Style src="project://database/Assets/Match%20Defense/UI%20Toolkit/Common/PauseStyle.uss?fileID=7433441132597879392&amp;guid=914426f015fceee4494e4efc883e6911&amp;type=3#PauseStyle"/>
     <ui:VisualElement name="pause-overlay" class="pause-overlay hide">
         <ui:VisualElement name="pause-window" class="pause-window">
             <ui:VisualElement name="pause-header" class="pause-header">
-                <ui:Label text="SETTINGS" name="pause-title" class="pause-title" />
-                <ui:Button text="X" name="pause-close-btn" class="pause-close-btn" />
+                <ui:Label text="SETTINGS" name="pause-title" class="pause-title"/>
+                <ui:Button text="X" name="pause-close-btn" class="pause-close-btn"/>
             </ui:VisualElement>
             <ui:VisualElement name="pause-settings" class="pause-settings">
                 <ui:VisualElement class="setting-row">
-                    <ui:Label text="BGM" class="setting-label" />
-                    <ui:Slider name="bgm-slider" low-value="0" high-value="1" value="1" class="setting-slider" />
+                    <ui:Label text="BGM" class="setting-label"/>
+                    <ui:Slider name="bgm-slider" low-value="0" high-value="1" value="1" class="setting-slider"/>
                 </ui:VisualElement>
                 <ui:VisualElement class="setting-row">
-                    <ui:Label text="SFX" class="setting-label" />
-                    <ui:Slider name="sfx-slider" low-value="0" high-value="1" value="1" class="setting-slider" />
+                    <ui:Label text="SFX" class="setting-label"/>
+                    <ui:Slider name="sfx-slider" low-value="0" high-value="1" value="1" class="setting-slider"/>
                 </ui:VisualElement>
                 <ui:VisualElement class="setting-row">
-                    <ui:Label text="VIBRATION" class="setting-label" />
+                    <ui:Label text="VIBRATION" class="setting-label"/>
                     <ui:Toggle name="vibration-toggle" value="true" class="setting-toggle">
-                        <ui:Label text="ON" name="vibration-on-txt" picking-mode="Ignore" class="toggle-on-txt" />
-                        <ui:Label text="OFF" name="vibration-off-txt" picking-mode="Ignore" class="toggle-off-txt" />
+                        <ui:Label text="ON" name="vibration-on-txt" picking-mode="Ignore" class="toggle-on-txt"/>
+                        <ui:Label text="OFF" name="vibration-off-txt" picking-mode="Ignore" class="toggle-off-txt"/>
                     </ui:Toggle>
                 </ui:VisualElement>
                 <ui:VisualElement class="setting-row">
-                    <ui:Label text="LANGUAGE" class="setting-label" />
-                    <ui:Button text="KO / EN" name="language-btn" class="setting-action-btn" />
+                    <ui:Label text="LANGUAGE" class="setting-label"/>
+                    <ui:Button text="KO / EN" name="language-btn" class="setting-action-btn"/>
                 </ui:VisualElement>
                 <ui:VisualElement class="setting-row">
-                    <ui:Label text="DATA" class="setting-label" />
-                    <ui:Button text="RESET" name="reset-data-btn" class="setting-action-btn setting-danger-btn" />
+                    <ui:Label text="DATA" class="setting-label"/>
+                    <ui:Button text="RESET" name="reset-data-btn" class="setting-action-btn setting-danger-btn"/>
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="pause-actions" class="pause-actions">
-                <ui:Button text="RESUME" name="resume-btn" class="pause-action-btn resume-btn" />
+                <ui:Button text="RESUME" name="resume-btn" class="pause-action-btn resume-btn"/>
                 <ui:VisualElement class="pause-sub-actions">
-                    <ui:Button text="RESTART" name="restart-btn" class="pause-action-btn sub-btn" />
-                    <ui:Button text="LOBBY" name="lobby-btn" class="pause-action-btn sub-btn" />
+                    <ui:Button text="RESTART" name="restart-btn" class="pause-action-btn sub-btn"/>
+                    <ui:Button text="LOBBY" name="lobby-btn" class="pause-action-btn sub-btn"/>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-
         <ui:VisualElement name="reset-confirm-overlay" class="reset-confirm-overlay hide">
             <ui:VisualElement name="reset-confirm-box" class="reset-confirm-box">
-                <ui:Label text="Reset all game data?" name="reset-confirm-text" class="reset-confirm-text" />
+                <ui:Label text="Reset all game data?" name="reset-confirm-text" class="reset-confirm-text"/>
                 <ui:VisualElement class="reset-confirm-buttons">
-                    <ui:Button text="CANCEL" name="reset-cancel-btn" class="pause-action-btn sub-btn" />
-                    <ui:Button text="CONFIRM" name="reset-confirm-btn" class="pause-action-btn sub-btn setting-danger-btn" />
+                    <ui:Button text="CANCEL" name="reset-cancel-btn" class="pause-action-btn sub-btn"/>
+                    <ui:Button text="CONFIRM" name="reset-confirm-btn" class="pause-action-btn sub-btn setting-danger-btn"/>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>

@@ -20,14 +20,14 @@ tut_s1_turn,정해진 횟수만큼만 드래그할 수 있고\n적을 처치하�
 tut_s1_place,게이지가 차면 상단 슬롯에서\n유닛을 드래그해 필드에 배치할 수 있어요!,"Once charged, drag your unit from the top slot onto the field!"
 tut_s1_press_play,"이제 어느 정도 유닛을 배치했으니,\n시작 버튼을 눌러볼까요?","You've placed your unit! Shall we press the Start button?"
 tut_s1_watch_enemy,적이 등장했어요! 배치한 유닛이 적을 잘 처치하는지 확인해볼까요?,An enemy has appeared! Let's watch your unit take it down!
-tut_s1_done,잘했어요! 이제 40웨이브까지 주방을 지켜내세요!,Great job! Now defend the kitchen all the way to Wave 40!
+tut_s1_done,잘했어요! 이제 마지막 웨이브까지 주방을 지켜내세요!,Great job! Now defend the kitchen until the final wave!
 tut_s2_enemy_runner,새로운 적 [스피드 세균]이 나타났어요! 체력은 낮지만 이동 속도가 매우 빠르니 주의하세요!,"A new enemy [Speed Germ] has appeared! Low HP, but moves very fast — watch out!"
 tut_s2_enemy_tanker,새로운 적 [탱커 세균]이 나타났어요! 속도는 느리지만 체력이 아주 높아요!,"A new enemy [Tanker Germ] has appeared! Slow, but has very high HP!"
 tut_lobby_welcome,1스테이지 클리어 축하해요! 이제 새로운 유닛을 얻으러 가볼까요?,Congrats on clearing Stage 1! Let's go get a new unit!
 tut_lobby_open_store,하단의 [상점] 탭을 눌러보세요!,Tap the [Store] tab at the bottom!
 tut_lobby_draw_gacha,뽑기 버튼을 눌러 새로운 유닛을 획득해보세요!,Press the Summon button to get a new unit!
-tut_lobby_open_inven,새로운 유닛을 얻었어요! 이제 [인벤토리] 탭을 눌러 확인해볼까요?,You got a new unit! Tap the [Inventory] tab to check it out!
-tut_lobby_equip_unit,방금 뽑은 유닛을 선택하고 [장착] 버튼을 눌러 덱에 넣어보세요!,Select your new unit and tap [EQUIP] to add it to your deck!
+tut_lobby_open_inven,새로운 유닛 [딸기잼]을 얻었어요! 딸기잼은 끈적한 잼을 던져 적의 이동 속도를 느리게 만들어요. 이제 [인벤토리] 탭을 눌러 확인해볼까요?,You got [Strawberry Jam]! It throws sticky jam to slow down enemies. Tap [Inventory] to check it out!
+tut_lobby_equip_unit,방금 뽑은 [딸기잼]의 [장착] 버튼을 눌러 덱에 넣어보세요! 빠른 곰팡이들의 발을 묶는 데 아주 유용해요!,Tap [EQUIP] on [Strawberry Jam] to add it to your deck! It's great for slowing fast molds!
 tut_lobby_done,완벽해요! 이제 더 강해진 덱으로 2스테이지에 도전해보세요!,Awesome! Now challenge Stage 2 with your stronger deck!
 store_gacha_title,유닛 랜덤 뽑기,UNIT SUMMON
 store_draw_btn,1회 뽑기,SUMMON x1
@@ -53,8 +53,8 @@ pause_resume,계속하기,RESUME
 pause_restart,다시 플레이,RETRY
 pause_lobby,로비로,LOBBY
 endless_prompt_desc,40웨이브 생존에 성공했어요! 무한 모드로 더 도전할까요, 아니면 보상을 받고 끝낼까요?,You survived Wave 40! Continue in Endless Mode or stop and claim your rewards?
-endless_continue_btn,무한 모드 계속하기,CONTINUE ENDLESS
-endless_stop_btn,그만하고 보상 받기,STOP & CLAIM
+endless_continue_btn,계속하기,CONTINUE
+endless_stop_btn,나가기,EXIT
 result_victory,스테이지 클리어!,STAGE CLEAR!
 result_defeat,방어 실패,GAME OVER
 result_clear_reward,클리어 보상,Clear Reward
@@ -79,3 +79,23 @@ quest_kill_10_title,적 10마리 처치,Defeat 10 Enemies
 quest_gacha_1_title,상점에서 유닛 1회 뽑기,Summon 1 Unit
 quest_upgrade_1_title,유닛 1회 강화,Upgrade 1 Unit
 quest_stage_1_title,스테이지 1회 클리어,Clear 1 Stage
+stage_sub_7,7. 짭짤한 총알,7. Salty Sniper
+stage_sub_8,8. 안내를 시작합니다.,8. Slime Navigation
+stage_sub_9,9. 대환장 파티,9. Kitchen Chaos Party
+stage_sub_10,10. 뿌리부터 제거하자!,10. Cut Out the Root!
+tut_lobby_open_quest,퀘스트를 달성했어요! 하단의 [퀘스트] 탭을 눌러 보상을 받아볼까요?,You completed a quest! Tap the [Quest] tab at the bottom to claim your reward!
+tut_lobby_claim_quest,[보상 받기] 버튼을 눌러 코인을 수령하세요!,Tap [CLAIM] to collect your bonus coins!
+tut_s1_intro_splitter,새로운 적 [포자낭]이 나타났어요! 처치하면 곰팡이 잔챙이들이 쏟아져 나오니 소보로 같은 광역 공격으로 대비하세요!,"A new enemy [Spore Sac] appeared! It splits into mini molds on death — use Soboro's AoE spin!"
+tut_s1_intro_assassin,위험! [맥각균]이 나타났어요! 아군 유닛 하나를 노려 제거하고 사라지니 프레첼로 멀리서 먼저 저격하세요!,"Danger! [Ergot Horn] appeared! It lunges to eliminate a random unit — snipe it from afar with Pretzel!"
+tut_s1_intro_slime,새로운 적 [블롬]이 나타났어요! 지나간 자리에 노란 점액을 남겨 뒤따르는 적들을 가속시키니 딸기잼으로 속도를 늦추세요!,"A new enemy [Blom] appeared! Its yellow slime trail speeds up other germs — slow them with Strawberry Jam!"
+tut_s1_intro_boss,거대한 [검은 빵 곰팡이 본체]가 나타났어요! 주기적으로 곰팡이를 소환하니 모든 빵 군단의 힘을 합쳐 쓰러뜨리세요!,"The giant [Black Mold Core] has arrived! It summons mold minions — unite your Bakery Squad to defeat it!"
+enemy_tanker_name,플로브,Plob (Armored Mold)
+enemy_tanker_desc,느리지만 껍질이 매우 단단한 곰팡이,Slow but heavily armored mold
+enemy_splitter_name,포자낭,Spore Sac
+enemy_splitter_desc,처치 시 검은 빵 곰팡이 3마리로 분열,Splits into 3 Basic Molds on death
+enemy_assassin_name,맥각균,Ergot Horn
+enemy_assassin_desc,아군 유닛 하나를 노려 제거하고 자폭,Lunges to eliminate a random unit
+enemy_slime_name,블롬,Blom (Slime Nav)
+enemy_slime_desc,지나간 자리에 적을 가속시키는 노란 점액 생성,Leaves a yellow speed-boost slime trail
+enemy_boss_name,검은 빵 곰팡이 본체,Giant Black Mold Core
+enemy_boss_desc,주기적으로 곰팡이를 소환하는 주방의 보스,Kitchen boss that summons mold minions

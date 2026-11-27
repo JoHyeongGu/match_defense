@@ -45,14 +45,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69822aca37492924386a4f72b598d8b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MatchDefense.Defense.Enemy
-  maxHP: 2
+  maxHP: 2.5
+  archetype: 1
   enemyId: enemy_runner
   nameLocalizationKey: enemy_runner_name
   descLocalizationKey: enemy_runner_desc
-  speed: 3
+  speed: 2.8
   leakDamage: 1
   animIndex: 0
   bodyRenderer: {fileID: 7364131594412527553}
+  applyTintColor: 1
+  tintColor: {r: 0.9, g: 0.23, b: 0.23, a: 1}
   hpUIPrefab: {fileID: 6182139848027201054, guid: 9d58f2eaf1dd32f4092aab39c0e3cdec, type: 3}
   hpBarOffset: {x: 0, y: 2.3, z: 0}
 --- !u!1 &5867251253346201504

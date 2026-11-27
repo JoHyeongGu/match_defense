@@ -782,11 +782,37 @@ namespace MatchDefense.Match
             return count >= 3;
         }
 
+        private float GetEffectiveSpawnWeight(int index)
+        {
+            if (unitDatas == null || index < 0 || index >= unitDatas.Length || unitDatas[index] == null)
+                return 0f;
+
+            float baseWeight = Mathf.Max(0.01f, unitDatas[index].spawnWeight);
+            if (!unitDatas[index].isUnlocked)
+                return baseWeight;
+
+            int unlockedCount = 0;
+            for (int i = 0; i < unitDatas.Length; i++)
+            {
+                if (unitDatas[i] != null && unitDatas[i].isUnlocked)
+                    unlockedCount++;
+            }
+
+            float boost = unlockedCount switch
+            {
+                1 => 2.6f,
+                2 => 1.75f,
+                3 => 1.35f,
+                _ => 1.0f
+            };
+            return baseWeight * boost;
+        }
+
         private void CalculateTotalWeight()
         {
             totalWeight = 0f;
             if (unitDatas == null) return;
-            for (int i = 0; i < unitDatas.Length; i++) totalWeight += unitDatas[i].spawnWeight;
+            for (int i = 0; i < unitDatas.Length; i++) totalWeight += GetEffectiveSpawnWeight(i);
         }
 
         private int GetRandomTypeWeighted()
@@ -796,7 +822,7 @@ namespace MatchDefense.Match
             float currentSum = 0f;
             for (int i = 0; i < unitDatas.Length; i++)
             {
-                currentSum += unitDatas[i].spawnWeight;
+                currentSum += GetEffectiveSpawnWeight(i);
                 if (randomVal <= currentSum) return i;
             }
             return unitDatas.Length - 1;

@@ -343,6 +343,7 @@ namespace MatchDefense.Lobby
             _stageTitleLabel = rootElement.Q<LocalizedLabel>("stage-title");
             _coinPill = rootElement.Q<VisualElement>("coin-status");
             _coinLabel = rootElement.Q<Label>("coin-label");
+            CoinFlyEffect.ApplyCoinSprite(rootElement.Q<VisualElement>("coin-icon"), rootElement.Q<VisualElement>("coin-icon")?.Q<Label>());
             _playButton = rootElement.Q<Button>("play-btn");
             _skipButton = rootElement.Q<Button>("skip-btn");
             _settingButton = rootElement.Q<Button>("setting-btn");

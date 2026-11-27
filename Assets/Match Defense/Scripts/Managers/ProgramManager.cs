@@ -23,11 +23,13 @@ namespace MatchDefense
         [Header("<color=yellow>Economy & Gacha</color>")]
         [SerializeField] private int gachaCostCoins = 100;
         [SerializeField] private int initialCoins = 0;
+        [SerializeField] private Sprite coinIconSprite;
 
         public IReadOnlyList<UnitCatalogEntry> UnitCatalog => unitCatalog;
         public IReadOnlyList<MainStageConfig> MainStages => mainStages;
         public IReadOnlyList<QuestDefinition> QuestDefinitions => questDefinitions;
         public int GachaCostCoins => gachaCostCoins;
+        public Sprite CoinIconSprite => coinIconSprite;
 
         public int CurrentMainStageIndex { get; private set; } = 0;
         public int CurrentSubStageIndex { get; private set; } = 0;
@@ -48,6 +50,7 @@ namespace MatchDefense
         public event Action OnInventoryChanged;
         public event Action OnStageProgressChanged;
         public event Action OnQuestsChanged;
+        public event Action<string> OnQuestClaimed;
         public event Action<float> OnBgmVolumeChanged;
         public event Action<float> OnSfxVolumeChanged;
         public event Action<bool> OnVibrationChanged;
@@ -393,6 +396,7 @@ namespace MatchDefense
 
                 if (notifyCoinsImmediately) OnCoinsChanged?.Invoke(_saveData.coins);
                 OnQuestsChanged?.Invoke();
+                OnQuestClaimed?.Invoke(questId);
                 return true;
             }
             return false;

@@ -56684,7 +56684,7 @@ MonoBehaviour:
     spawnTutorialEnemyPrefab: {fileID: 0}
     pauseGameDuringStep: 0
     stepTimeScale: 1
-    dialogPosition: 1
+    dialogPosition: 0
   - stepId: tut_s1_turn
     messageLocalizationKey: tut_s1_turn
     highlightType: 1
@@ -56740,7 +56740,7 @@ MonoBehaviour:
     spawnTutorialEnemyPrefab: {fileID: 2320582986695531841, guid: 872a6262dc9c25b4eae1f1097801513a, type: 3}
     pauseGameDuringStep: 0
     stepTimeScale: 1
-    dialogPosition: 2
+    dialogPosition: 1
   - stepId: tut_s1_done
     messageLocalizationKey: tut_s1_done
     highlightType: 0
@@ -117549,15 +117549,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MatchDefense.GameManager
   enemySpawner: {fileID: 1990423916}
-  mainStageIndexOverride: -1
-  subStageIndexOverride: -1
+  mainStageIndexOverride: 0
+  subStageIndexOverride: 0
   maxHP: 20
-  maxWave: 40
+  maxWave: 6
   doubleSpeedScale: 2
   lobbySceneName: Lobby
-  clearRewardCoins: 100
-  coinsPerRemainingTurn: 5
-  baseEnemyCount: 15
+  clearRewardCoins: 450
+  coinsPerRemainingTurn: 10
+  baseEnemyCount: 8
   baseSpawnInterval: 1.5
   intervalDecreaseRate: 0.85
   minSpawnInterval: 0.2
@@ -117578,6 +117578,7 @@ MonoBehaviour:
   gameManager: {fileID: 1558195156}
   pausePopupAsset: {fileID: 9197481963319205126, guid: 5a50f5bda31465347a076404a11e3c4c, type: 3}
   resultPopupAsset: {fileID: 9197481963319205126, guid: 7e1162247eccf084684cc2d3381b86ff, type: 3}
+  victoryBannerSprite: {fileID: 0}
 --- !u!1 &1562707091
 GameObject:
   m_ObjectHideFlags: 0
@@ -140028,30 +140029,26 @@ MonoBehaviour:
   defaultEnemyPool:
   - enemyPrefab: {fileID: 2320582986695531841, guid: 872a6262dc9c25b4eae1f1097801513a, type: 3}
     weight: 1
-  - enemyPrefab: {fileID: 2320582986695531841, guid: 118ec1d59524dfd4b89a13121ba8aa09, type: 3}
-    weight: 0.3
   fallbackEnemyPrefab: {fileID: 2320582986695531841, guid: 872a6262dc9c25b4eae1f1097801513a, type: 3}
   waveRules:
-  - startWave: 0
-    endWave: 5
+  - startWave: 1
+    endWave: 3
     enemyPool:
     - enemyPrefab: {fileID: 2320582986695531841, guid: 872a6262dc9c25b4eae1f1097801513a, type: 3}
       weight: 1
-    hpMultiplier: 0.5
-    speedMultiplier: 1
-    overrideEnemyCount: 0
-    overrideSpawnInterval: 0
-  - startWave: 6
-    endWave: 10
+    hpMultiplier: 0.75
+    speedMultiplier: 0.95
+    overrideEnemyCount: 6
+    overrideSpawnInterval: 1.6
+  - startWave: 4
+    endWave: 6
     enemyPool:
     - enemyPrefab: {fileID: 2320582986695531841, guid: 872a6262dc9c25b4eae1f1097801513a, type: 3}
       weight: 1
-    - enemyPrefab: {fileID: 2320582986695531841, guid: 118ec1d59524dfd4b89a13121ba8aa09, type: 3}
-      weight: 0.3
     hpMultiplier: 1
     speedMultiplier: 1
-    overrideEnemyCount: 0
-    overrideSpawnInterval: 0
+    overrideEnemyCount: 9
+    overrideSpawnInterval: 1.35
   endlessHpGrowthPerWave: 0.08
   endlessSpeedGrowthPerWave: 0.015
 --- !u!43 &1998460643

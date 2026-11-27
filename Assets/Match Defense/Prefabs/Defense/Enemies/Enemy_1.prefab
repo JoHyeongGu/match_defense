@@ -45,11 +45,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69822aca37492924386a4f72b598d8b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MatchDefense.Defense.Enemy
-  maxHP: 3
+  maxHP: 4
   enemyId: enemy_normal
   nameLocalizationKey: enemy_normal_name
   descLocalizationKey: enemy_normal_desc
-  speed: 1
+  speed: 1.1
   leakDamage: 1
   animIndex: 0
   bodyRenderer: {fileID: 3175632646832978885}

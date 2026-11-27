@@ -76,9 +76,9 @@ namespace MatchDefense
                 if (bgmSource == null)
                 {
                     bgmSource = gameObject.AddComponent<AudioSource>();
-                    bgmSource.loop = true;
                     bgmSource.playOnAwake = false;
                 }
+                bgmSource.loop = true;
 
                 BuildSfxLookup();
                 for (int i = 0; i < initialSfxPoolSize; i++)
@@ -194,6 +194,7 @@ namespace MatchDefense
 
             if (!bgmSource.isPlaying || bgmCrossFadeDuration <= 0.05f)
             {
+                bgmSource.loop = true;
                 bgmSource.clip = clip;
                 bgmSource.volume = targetVol;
                 bgmSource.Play();
@@ -204,6 +205,7 @@ namespace MatchDefense
                 .SetUpdate(true)
                 .OnComplete(() =>
                 {
+                    bgmSource.loop = true;
                     bgmSource.clip = clip;
                     bgmSource.Play();
                     bgmFadeTween = DOTween.To(() => bgmSource.volume, v => bgmSource.volume = v, currentBgmBaseVolume * masterBgmVolume, bgmCrossFadeDuration * 0.5f)
@@ -217,6 +219,7 @@ namespace MatchDefense
             bgmFadeTween?.Kill();
             currentBgmBaseVolume = volume;
             bgmSource.Stop();
+            bgmSource.loop = true;
             bgmSource.clip = clip;
             bgmSource.volume = currentBgmBaseVolume * masterBgmVolume;
             bgmSource.Play();

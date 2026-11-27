@@ -354,14 +354,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MatchDefense.Defense.Units.Butter
   maxHP: 3
   damage: 1
-  cooldown: 5
-  range: 1
+  cooldown: 4
+  range: 1.6
   targetType: 1
   atkCount: 1
   atkInterval: 0
   atkTargetCount: -1
-  atkSpeedBuff: 0.3
-  atkDamageBuff: 0.5
+  atkSpeedBuff: 0.65
+  atkDamageBuff: 1.35
   buffDuration: 5
   butter: {fileID: 2987160378702292969}
 --- !u!136 &8026922934186555438

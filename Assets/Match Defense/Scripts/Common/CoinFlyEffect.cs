@@ -7,6 +7,28 @@ namespace MatchDefense.UI
 {
     public static class CoinFlyEffect
     {
+        public static void ApplyCoinSprite(VisualElement badgeElement, Label fallbackText = null)
+        {
+            if (badgeElement == null) return;
+            Sprite sprite = ProgramManager.Instance != null ? ProgramManager.Instance.CoinIconSprite : null;
+
+            if (sprite != null)
+            {
+                badgeElement.style.backgroundImage = new StyleBackground(sprite);
+                badgeElement.style.backgroundColor = Color.clear;
+                badgeElement.style.borderTopWidth = 0;
+                badgeElement.style.borderBottomWidth = 0;
+                badgeElement.style.borderLeftWidth = 0;
+                badgeElement.style.borderRightWidth = 0;
+                badgeElement.style.backgroundSize = new BackgroundSize(BackgroundSizeType.Contain);
+                if (fallbackText != null) fallbackText.style.display = DisplayStyle.None;
+            }
+            else if (fallbackText != null)
+            {
+                fallbackText.style.display = DisplayStyle.Flex;
+            }
+        }
+
         public static void Play(
             VisualElement root,
             Vector2 startPos,
@@ -25,7 +47,7 @@ namespace MatchDefense.UI
             }
 
             Vector2 endPos = targetCoinPill.worldBound.center;
-            int count = Mathf.Clamp(visualCoinCount, 4, 16);
+            int count = Mathf.Clamp(visualCoinCount, 4, 18);
             int arrivedCount = 0;
             float pillBounceScale = 1f;
             Tween pillTween = null;
@@ -40,8 +62,8 @@ namespace MatchDefense.UI
                     UnityEngine.Random.Range(-110f, 110f),
                     UnityEngine.Random.Range(-70f, 70f));
 
-                float delay = idx * 0.055f;
-                float scatterDuration = 0.16f;
+                float delay = idx * 0.05f;
+                float scatterDuration = 0.15f;
                 float flyDuration = 0.42f;
 
                 Sequence seq = DOTween.Sequence().SetUpdate(true);
@@ -99,26 +121,36 @@ namespace MatchDefense.UI
 
         private static VisualElement CreateCoinElement(Vector2 centerPos)
         {
-            const float size = 54f;
+            const float size = 56f;
             var coin = new VisualElement { pickingMode = PickingMode.Ignore };
             coin.style.position = Position.Absolute;
             coin.style.width = size;
             coin.style.height = size;
-            coin.style.backgroundColor = new Color(1f, 0.78f, 0.16f, 1f);
-            coin.style.borderTopWidth = coin.style.borderBottomWidth = coin.style.borderLeftWidth = coin.style.borderRightWidth = 5f;
-            Color borderCol = new Color(0.84f, 0.52f, 0.08f, 1f);
-            coin.style.borderTopColor = coin.style.borderBottomColor = coin.style.borderLeftColor = coin.style.borderRightColor = borderCol;
-            coin.style.borderTopLeftRadius = coin.style.borderTopRightRadius = coin.style.borderBottomLeftRadius = coin.style.borderBottomRightRadius = size * 0.5f;
             coin.style.justifyContent = Justify.Center;
             coin.style.alignItems = Align.Center;
             coin.style.transformOrigin = new TransformOrigin(Length.Percent(50), Length.Percent(50));
 
-            var label = new Label("C") { pickingMode = PickingMode.Ignore };
-            label.style.fontSize = 26f;
-            label.style.color = new Color(0.56f, 0.28f, 0.04f, 1f);
-            label.style.unityFontStyleAndWeight = FontStyle.Bold;
-            label.style.unityTextAlign = TextAnchor.MiddleCenter;
-            coin.Add(label);
+            Sprite customSprite = ProgramManager.Instance != null ? ProgramManager.Instance.CoinIconSprite : null;
+            if (customSprite != null)
+            {
+                coin.style.backgroundImage = new StyleBackground(customSprite);
+                coin.style.backgroundSize = new BackgroundSize(BackgroundSizeType.Contain);
+            }
+            else
+            {
+                coin.style.backgroundColor = new Color(1f, 0.78f, 0.16f, 1f);
+                coin.style.borderTopWidth = coin.style.borderBottomWidth = coin.style.borderLeftWidth = coin.style.borderRightWidth = 5f;
+                Color borderCol = new Color(0.84f, 0.52f, 0.08f, 1f);
+                coin.style.borderTopColor = coin.style.borderBottomColor = coin.style.borderLeftColor = coin.style.borderRightColor = borderCol;
+                coin.style.borderTopLeftRadius = coin.style.borderTopRightRadius = coin.style.borderBottomLeftRadius = coin.style.borderBottomRightRadius = size * 0.5f;
+
+                var label = new Label("C") { pickingMode = PickingMode.Ignore };
+                label.style.fontSize = 26f;
+                label.style.color = new Color(0.56f, 0.28f, 0.04f, 1f);
+                label.style.unityFontStyleAndWeight = FontStyle.Bold;
+                label.style.unityTextAlign = TextAnchor.MiddleCenter;
+                coin.Add(label);
+            }
 
             SetCenterPos(coin, centerPos);
             return coin;
@@ -126,8 +158,8 @@ namespace MatchDefense.UI
 
         private static void SetCenterPos(VisualElement el, Vector2 center)
         {
-            el.style.left = center.x - 27f;
-            el.style.top = center.y - 27f;
+            el.style.left = center.x - 28f;
+            el.style.top = center.y - 28f;
         }
 
         private static Vector2 EvaluateQuadraticBezier(Vector2 a, Vector2 b, Vector2 c, float t)

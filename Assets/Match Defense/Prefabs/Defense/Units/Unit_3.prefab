@@ -47,12 +47,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MatchDefense.Defense.Units.Soboro
   maxHP: 3
-  damage: 0.05
-  cooldown: 3
-  range: 1
+  damage: 0.35
+  cooldown: 2.6
+  range: 1.6
   targetType: 0
-  atkCount: 10
-  atkInterval: 0.1
+  atkCount: 8
+  atkInterval: 0.09
   atkTargetCount: -1
   body: {fileID: 3051769321263917177}
 --- !u!136 &8026922934186555438

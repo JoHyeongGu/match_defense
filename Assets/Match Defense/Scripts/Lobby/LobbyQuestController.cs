@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using MatchDefense.UI;
+using MatchDefense.Tutorial;
 
 namespace MatchDefense.Lobby
 {
@@ -60,6 +61,7 @@ namespace MatchDefense.Lobby
             IReadOnlyList<QuestDefinition> defs = ProgramManager.Instance.QuestDefinitions;
             if (defs == null) return;
 
+            bool taggedFirstReady = false;
             for (int i = 0; i < defs.Count; i++)
             {
                 QuestDefinition def = defs[i];
@@ -118,6 +120,7 @@ namespace MatchDefense.Lobby
                 {
                     claimBtn.text = GetText("quest_claim", "CLAIM");
                     claimBtn.AddToClassList("quest-claim-btn--ready");
+                    if (!taggedFirstReady) { claimBtn.name = "quest-claim-ready-btn"; taggedFirstReady = true; }
                     claimBtn.SetEnabled(true);
                     claimBtn.clicked += () => OnClaimClicked(capturedId, claimBtn);
                 }
@@ -144,6 +147,7 @@ namespace MatchDefense.Lobby
 
             if (!ProgramManager.Instance.TryClaimQuestReward(questId, out int reward, notifyCoinsImmediately: false))
                 return;
+            TutorialManager.Instance?.NotifyQuestClaimed();
 
             int afterCoins = ProgramManager.Instance.Coins;
             SoundManager.Instance?.PlaySFX(SfxType.QuestClaim);

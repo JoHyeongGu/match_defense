@@ -296,8 +296,22 @@ namespace MatchDefense
             isAwaitingEndlessChoice = true;
             ApplyTimeScale();
 
-            StageRewardSummary preview = BuildRewardSummary(cleared: true);
-            OnEndlessChoiceRequested?.Invoke(preview);
+            StageRewardSummary summary = BuildRewardSummary(cleared: true);
+            if (!rewardsClaimed)
+                GrantRewards(summary);
+
+            OnStageCleared?.Invoke();
+            OnEndlessChoiceRequested?.Invoke(summary);
+        }
+
+        public void FinishStageAndGoToLobby()
+        {
+            isAwaitingEndlessChoice = false;
+            isStageCleared = true;
+            StopWaves();
+            if (!rewardsClaimed)
+                GrantRewards(BuildRewardSummary(cleared: true));
+            GoToLobby();
         }
 
         public void ContinueEndlessMode()

@@ -25,7 +25,8 @@ namespace MatchDefense.Tutorial
         WaveStartPressed,
         TutorialEnemyKilled,
         GachaDrawn,
-        UnitEquipped
+        UnitEquipped,
+        QuestClaimed
     }
 
     public enum TutorialDialogPosition
@@ -483,6 +484,19 @@ namespace MatchDefense.Tutorial
             if (!IsTutorialRunning) return;
             if (CurrentStep != null && CurrentStep.completionTrigger == TutorialCompletionTrigger.UnitEquipped)
                 AdvanceStep();
+        }
+
+        public void NotifyQuestClaimed()
+        {
+            if (!IsTutorialRunning) return;
+            if (CurrentStep != null && CurrentStep.completionTrigger == TutorialCompletionTrigger.QuestClaimed)
+                AdvanceStep();
+        }
+
+        public void SetOverlayHiddenTemporarily(bool hidden)
+        {
+            if (_overlayRoot == null) return;
+            _overlayRoot.style.display = hidden ? DisplayStyle.None : DisplayStyle.Flex;
         }
         #endregion
 

@@ -1,0 +1,122 @@
+.result-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgba(14, 7, 3, 0.8);
+    justify-content: center;
+    align-items: center;
+}
+
+.result-overlay.hide {
+    display: none;
+}
+
+.result-window {
+    width: 86%;
+    max-width: 880px;
+    padding: 44px 38px;
+    border-radius: 34px;
+    background-color: rgb(110, 62, 30);
+    border-width: 6px;
+    border-color: rgb(214, 146, 86);
+    flex-direction: column;
+    align-items: center;
+    filter: drop-shadow(0 10 20 rgba(0, 0, 0, 0.65));
+}
+
+.result-title {
+    width: 100%;
+    margin-bottom: 18px;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    font-size: 62px;
+    color: rgb(255, 224, 130);
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.6);
+}
+
+.result-wave-label,
+.result-desc {
+    width: 100%;
+    margin-bottom: 28px;
+    white-space: normal;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    font-size: 36px;
+    color: rgb(255, 243, 228);
+}
+
+.result-reward-box {
+    width: 100%;
+    padding: 28px;
+    margin-bottom: 30px;
+    border-radius: 24px;
+    background-color: rgb(72, 38, 16);
+    flex-direction: column;
+    align-items: center;
+}
+
+.result-reward-line {
+    width: 100%;
+    margin-bottom: 10px;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF R");
+    -unity-text-align: middle-center;
+    font-size: 32px;
+    color: rgb(242, 212, 184);
+}
+
+.result-total-coin {
+    width: 100%;
+    margin-top: 14px;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    font-size: 56px;
+    color: rgb(255, 208, 64);
+    text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.55);
+}
+
+.result-btn-col {
+    width: 100%;
+    flex-direction: column;
+}
+
+.result-btn-row {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.result-btn {
+    height: 104px;
+    margin-top: 14px;
+    padding: 0 16px;
+    border-width: 0;
+    border-radius: 24px;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    -unity-text-auto-size: best-fit 24px 44px;
+    color: rgb(255, 248, 238);
+    transition-property: scale;
+    transition-duration: 0.1s;
+}
+
+.result-btn:active {
+    scale: 0.95 0.95;
+}
+
+.result-btn--half {
+    width: 48%;
+}
+
+.result-btn--primary {
+    background-color: rgb(196, 114, 46);
+}
+
+.result-btn--accent {
+    background-color: rgb(72, 152, 82);
+}
+
+.result-btn--secondary {
+    background-color: rgb(134, 78, 42);
+}

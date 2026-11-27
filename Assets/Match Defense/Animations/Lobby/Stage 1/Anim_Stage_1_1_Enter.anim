@@ -7796,6 +7796,42 @@ AnimationClip:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
+        time: 0
+        value: {x: 24.692, y: -23.876, z: -8.413}
+        inSlope: {x: 0, y: 0, z: 0}
+        outSlope: {x: 0, y: 0, z: 0}
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
+        outWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
+      - serializedVersion: 3
+        time: 3.9375
+        value: {x: 24.692, y: -23.876, z: -8.413}
+        inSlope: {x: 0, y: 0, z: 0}
+        outSlope: {x: 0, y: 0, z: 0}
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
+        outWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
+      - serializedVersion: 3
+        time: 4.3125
+        value: {x: 51.64, y: -52.516, z: -36.216}
+        inSlope: {x: 0, y: 0, z: 0}
+        outSlope: {x: 0, y: 0, z: 0}
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
+        outWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
+      - serializedVersion: 3
+        time: 4.5625
+        value: {x: 24.692, y: -23.876, z: -8.413}
+        inSlope: {x: 0, y: 0, z: 0}
+        outSlope: {x: 0, y: 0, z: 0}
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
+        outWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
+      - serializedVersion: 3
         time: 12.625
         value: {x: 24.692, y: -23.876, z: -8.413}
         inSlope: {x: 0, y: 0, z: 0}
@@ -48666,6 +48702,42 @@ AnimationClip:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
+        time: 0
+        value: 24.692
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 3.9375
+        value: 24.692
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 4.3125
+        value: 51.64
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 4.5625
+        value: 24.692
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
         time: 12.625
         value: 24.692
         inSlope: 0
@@ -48705,6 +48777,42 @@ AnimationClip:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
+        time: 0
+        value: -23.876
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 3.9375
+        value: -23.876
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 4.3125
+        value: -52.516
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 4.5625
+        value: -23.876
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
         time: 12.625
         value: -23.876
         inSlope: 0
@@ -48743,6 +48851,42 @@ AnimationClip:
     curve:
       serializedVersion: 2
       m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: -8.413
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 3.9375
+        value: -8.413
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 4.3125
+        value: -36.216
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 4.5625
+        value: -8.413
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
       - serializedVersion: 3
         time: 12.625
         value: -8.413
@@ -50332,7 +50476,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.z
-    path: Chef/Armature/Spine_1/Spine_2/Neck_1/Neck_2/Head/Mouth_Bottom
+    path: Bottle
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -50344,7 +50488,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.y
-    path: Chef/Armature/Spine_1/Spine_2/Neck_1/Neck_2/Head/Mouth_Bottom
+    path: Bottle
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -50356,7 +50500,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.x
-    path: Chef/Armature/Spine_1/Spine_2/Neck_1/Neck_2/Head/Mouth_Bottom
+    path: Bottle
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -51952,7 +52096,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.x
-    path: Bottle
+    path: Chef/Armature/Spine_1/Spine_2/Neck_1/Neck_2/Head/Mouth_Bottom
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -51964,7 +52108,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.y
-    path: Bottle
+    path: Chef/Armature/Spine_1/Spine_2/Neck_1/Neck_2/Head/Mouth_Bottom
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -51976,7 +52120,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.z
-    path: Bottle
+    path: Chef/Armature/Spine_1/Spine_2/Neck_1/Neck_2/Head/Mouth_Bottom
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -51984,107 +52128,93 @@ AnimationClip:
   m_HasMotionFloatCurves: 0
   m_Events:
   - time: 0
-    functionName: SetCamPosition
+    functionName: SwitchBGMImmediate
     data: 
+    objectReferenceParameter: {fileID: 8300000, guid: 4ef20a0f6450fe4419a8736cf09eadcf, type: 3}
+    floatParameter: 0.5
+    intParameter: 0
+    messageOptions: 0
+  - time: 0.25
+    functionName: MoveCamera
+    data: chief_cook
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 5.625
-    functionName: SetDuration
+  - time: 2.8125
+    functionName: PlaySFX
     data: 
-    objectReferenceParameter: {fileID: 0}
-    floatParameter: 0.5
+    objectReferenceParameter: {fileID: 8300000, guid: 279a967a4c3373e43b8439eb2be83686, type: 3}
+    floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 5.8125
-    functionName: SetCamPosition
-    data: 
+  - time: 6
+    functionName: MoveCamera
+    data: cat_staring_back
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
     intParameter: 1
     messageOptions: 0
-  - time: 6.75
-    functionName: SetDuration
-    data: 
-    objectReferenceParameter: {fileID: 0}
-    floatParameter: 2
-    intParameter: 0
-    messageOptions: 0
-  - time: 6.9375
-    functionName: SetCamPosition
-    data: 
+  - time: 7
+    functionName: MoveCamera
+    data: cat_move
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
     intParameter: 2
     messageOptions: 0
   - time: 7
-    functionName: SetFieldOfView
+    functionName: PlaySFX
     data: 
-    objectReferenceParameter: {fileID: 0}
-    floatParameter: 100
+    objectReferenceParameter: {fileID: 8300000, guid: d53d1689a58b662418781721fd63d3d8, type: 3}
+    floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 9.9375
-    functionName: SetDuration
-    data: 
+  - time: 9.25
+    functionName: MoveCamera
+    data: cat_zoom
     objectReferenceParameter: {fileID: 0}
-    floatParameter: 3
+    floatParameter: 0
+    intParameter: 3
+    messageOptions: 0
+  - time: 10
+    functionName: MoveCamera
+    data: cat_zoom_in
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 60
     intParameter: 0
     messageOptions: 0
   - time: 10.0625
-    functionName: SetFieldOfView
-    data: 
-    objectReferenceParameter: {fileID: 0}
-    floatParameter: 65
-    intParameter: 0
-    messageOptions: 0
-  - time: 12.3125
-    functionName: SetEase
-    data: 
-    objectReferenceParameter: {fileID: 0}
-    floatParameter: 0
-    intParameter: 1
-    messageOptions: 0
-  - time: 12.375
-    functionName: SetDuration
+    functionName: FadeOutBGM
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0.5
     intParameter: 0
     messageOptions: 0
-  - time: 12.5
-    functionName: SetCamPosition
+  - time: 10.125
+    functionName: PlaySFX
     data: 
+    objectReferenceParameter: {fileID: 8300000, guid: f4d247461c57a144e80112fd25c621e6, type: 3}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 12.5
+    functionName: MoveCamera
+    data: sink_to_cat
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
     intParameter: 3
     messageOptions: 0
-  - time: 13.4375
-    functionName: SetDuration
-    data: 
-    objectReferenceParameter: {fileID: 0}
-    floatParameter: 3
-    intParameter: 0
-    messageOptions: 0
-  - time: 13.5625
-    functionName: SetEase
-    data: 
-    objectReferenceParameter: {fileID: 0}
-    floatParameter: 0
-    intParameter: 0
-    messageOptions: 0
-  - time: 13.6875
-    functionName: SetCamPosition
-    data: 
+  - time: 13.75
+    functionName: MoveCamera
+    data: chief_surprised
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
     intParameter: 4
     messageOptions: 0
-  - time: 13.75
-    functionName: SetFieldOfView
+  - time: 16.875
+    functionName: PlaySFX
     data: 
-    objectReferenceParameter: {fileID: 0}
-    floatParameter: 120
+    objectReferenceParameter: {fileID: 8300000, guid: b7807219f0d4e25449f8e3437950c861, type: 3}
+    floatParameter: 0
     intParameter: 0
     messageOptions: 0

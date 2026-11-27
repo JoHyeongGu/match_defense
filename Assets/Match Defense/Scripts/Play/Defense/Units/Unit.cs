@@ -25,6 +25,7 @@ namespace MatchDefense.Defense
         protected readonly List<Character> targets = new();
         protected float _timer;
         public Vector2Int GridPos { get; private set; }
+        public int UnitLevel { get; private set; } = 1;
 
         protected override void Awake()
         {
@@ -44,6 +45,13 @@ namespace MatchDefense.Defense
         {
             if (MatchManager.Instance != null)
                 MatchManager.Instance.RemoveSpawnedUnit(this);
+        }
+
+        public virtual void ApplyUpgradeStats(int level, float bonusDamage, float cooldownMultiplier)
+        {
+            UnitLevel = Mathf.Max(1, level);
+            damage = Mathf.Max(0.1f, damage + Mathf.Max(0f, bonusDamage));
+            cooldown = Mathf.Max(0.15f, cooldown * Mathf.Clamp(cooldownMultiplier, 0.3f, 1f));
         }
 
         private void Update()

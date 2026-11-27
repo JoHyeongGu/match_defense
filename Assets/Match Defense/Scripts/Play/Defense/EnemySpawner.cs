@@ -1,19 +1,69 @@
+using System;
+using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
-using System.Collections.Generic;
+using UnityEngine.Serialization;
 
 namespace MatchDefense.Defense
 {
+    [Serializable]
+    public class EnemySpawnWeight
+    {
+        public GameObject enemyPrefab;
+        [Min(0.01f)] public float weight = 1f;
+    }
+
+    [Serializable]
+    public class WaveEnemyRule
+    {
+        [Tooltip("Start wave (inclusive)")]
+        public int startWave = 1;
+        [Tooltip("End wave (inclusive, <= 0 for unlimited)")]
+        public int endWave = 5;
+
+        [Header("Spawn Pool")]
+        public EnemySpawnWeight[] enemyPool;
+
+        [Header("Stat Scaling")]
+        [Min(0.1f)] public float hpMultiplier = 1f;
+        [Min(0.1f)] public float speedMultiplier = 1f;
+
+        [Header("Optional Wave Count / Interval Override (0 = Default Formula)")]
+        public int overrideEnemyCount = 0;
+        public float overrideSpawnInterval = 0f;
+
+        public bool MatchesWave(int wave)
+        {
+            if (wave < startWave) return false;
+            if (endWave > 0 && wave > endWave) return false;
+            return true;
+        }
+    }
+
     public class EnemySpawner : MonoBehaviour
     {
-        [Header("Spawn Settings")]
-        [SerializeField] private GameObject enemyPrefab;
+        [Header("<color=yellow>Default Spawn Pool (Stage Default)</color>")]
+        [Tooltip("Default enemy prefabs and spawn weights when no wave rule matches")]
+        [SerializeField] private EnemySpawnWeight[] defaultEnemyPool;
+        [FormerlySerializedAs("enemyPrefab")]
+        [Tooltip("Legacy single fallback prefab (used if defaultEnemyPool is empty)")]
+        [SerializeField] private GameObject fallbackEnemyPrefab;
+
+        [Header("<color=yellow>Wave-Specific Rules</color>")]
+        [Tooltip("Per-wave enemy pool, weight, and stat multiplier rules")]
+        [SerializeField] private WaveEnemyRule[] waveRules;
+
+        [Header("<color=yellow>Endless Scaling (After Wave 40)</color>")]
+        [SerializeField] private float endlessHpGrowthPerWave = 0.08f;
+        [SerializeField] private float endlessSpeedGrowthPerWave = 0.015f;
 
         public static EnemySpawner Instance { get; private set; }
         public readonly List<Enemy> ActiveEnemies = new List<Enemy>();
 
         public float TotalPathLength { get; private set; }
         public Vector3[] PathWaypoints { get; private set; }
+
+        public event Action<Enemy> OnEnemySpawned;
 
         private Vector3 spawnPoint;
 
@@ -35,15 +85,100 @@ namespace MatchDefense.Defense
         }
 
         #region Spawn
-        public void SpawnEnemy()
+        public GameObject GetFallbackEnemyPrefab()
         {
-            if (PathWaypoints == null || PathWaypoints.Length == 0) return;
+            if (fallbackEnemyPrefab != null) return fallbackEnemyPrefab;
+            if (defaultEnemyPool != null)
+            {
+                for (int i = 0; i < defaultEnemyPool.Length; i++)
+                {
+                    if (defaultEnemyPool[i] != null && defaultEnemyPool[i].enemyPrefab != null)
+                        return defaultEnemyPool[i].enemyPrefab;
+                }
+            }
+            return null;
+        }
 
-            GameObject obj = Instantiate(enemyPrefab, spawnPoint, Quaternion.identity);
+        public Enemy SpawnEnemy() => SpawnEnemyForWave(1, 40);
+
+        public Enemy SpawnEnemyForWave(int wave, int targetClearWave = 40)
+        {
+            if (PathWaypoints == null || PathWaypoints.Length == 0) InitPath();
+            if (PathWaypoints == null || PathWaypoints.Length == 0) return null;
+
+            WaveEnemyRule activeRule = FindRuleForWave(wave);
+            EnemySpawnWeight[] pool = (activeRule != null && activeRule.enemyPool != null && activeRule.enemyPool.Length > 0)
+                ? activeRule.enemyPool
+                : defaultEnemyPool;
+
+            GameObject prefab = PickPrefabFromPool(pool);
+            if (prefab == null) prefab = fallbackEnemyPrefab;
+            if (prefab == null) return null;
+
+            float hpMult = activeRule != null ? activeRule.hpMultiplier : 1f;
+            float speedMult = activeRule != null ? activeRule.speedMultiplier : 1f;
+
+            if (wave > targetClearWave)
+            {
+                int extraWaves = wave - targetClearWave;
+                hpMult *= (1f + extraWaves * endlessHpGrowthPerWave);
+                speedMult *= (1f + extraWaves * endlessSpeedGrowthPerWave);
+            }
+
+            return SpawnSpecificEnemy(prefab, hpMult, speedMult);
+        }
+
+        public Enemy SpawnSpecificEnemy(GameObject prefab, float hpMultiplier = 1f, float speedMultiplier = 1f)
+        {
+            if (prefab == null) return null;
+            if (PathWaypoints == null || PathWaypoints.Length == 0) InitPath();
+            if (PathWaypoints == null || PathWaypoints.Length == 0) return null;
+
+            GameObject obj = Instantiate(prefab, spawnPoint, Quaternion.identity);
             Enemy enemy = obj.GetComponent<Enemy>();
+            if (enemy != null)
+            {
+                ActiveEnemies.Add(enemy);
+                enemy.Init(PathWaypoints, TotalPathLength, hpMultiplier, speedMultiplier);
+                OnEnemySpawned?.Invoke(enemy);
+            }
+            return enemy;
+        }
 
-            ActiveEnemies.Add(enemy);
-            enemy.Init(PathWaypoints, TotalPathLength);
+        public WaveEnemyRule FindRuleForWave(int wave)
+        {
+            if (waveRules == null) return null;
+            for (int i = waveRules.Length - 1; i >= 0; i--)
+            {
+                if (waveRules[i] != null && waveRules[i].MatchesWave(wave))
+                    return waveRules[i];
+            }
+            return null;
+        }
+
+        private GameObject PickPrefabFromPool(EnemySpawnWeight[] pool)
+        {
+            if (pool == null || pool.Length == 0) return null;
+
+            float totalWeight = 0f;
+            for (int i = 0; i < pool.Length; i++)
+            {
+                if (pool[i] != null && pool[i].enemyPrefab != null)
+                    totalWeight += Mathf.Max(0.01f, pool[i].weight);
+            }
+
+            if (totalWeight <= 0f) return null;
+
+            float roll = UnityEngine.Random.Range(0f, totalWeight);
+            float sum = 0f;
+            for (int i = 0; i < pool.Length; i++)
+            {
+                if (pool[i] == null || pool[i].enemyPrefab == null) continue;
+                sum += Mathf.Max(0.01f, pool[i].weight);
+                if (roll <= sum) return pool[i].enemyPrefab;
+            }
+
+            return pool[pool.Length - 1].enemyPrefab;
         }
 
         public void RemoveEnemy(Enemy enemy)
@@ -62,6 +197,7 @@ namespace MatchDefense.Defense
 
             if (PathWaypoints != null && PathWaypoints.Length > 0)
             {
+                spawnPoint = PathWaypoints[0];
                 for (int i = 0; i < PathWaypoints.Length - 1; i++)
                 {
                     TotalPathLength += Vector3.Distance(PathWaypoints[i], PathWaypoints[i + 1]);

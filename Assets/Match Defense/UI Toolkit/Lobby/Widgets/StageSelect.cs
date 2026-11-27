@@ -97,7 +97,7 @@ public partial class StageSelect : VisualElement
         get => m_OutlineWidthVW;
         set { m_OutlineWidthVW = value; if (m_Label != null) m_Label.OutlineWidthVW = value; }
     }
-    private float m_OutlineWidthVW = 0.06f; // 기존 0.6 픽셀 정도의 느낌을 내는 vw값
+    private float m_OutlineWidthVW = 0.06f;
 
     [UxmlAttribute]
     public Color OutlineColor
@@ -113,7 +113,7 @@ public partial class StageSelect : VisualElement
         get => m_ShadowOffsetVW;
         set { m_ShadowOffsetVW = value; if (m_Label != null) m_Label.ShadowOffsetVW = value; }
     }
-    private Vector2 m_ShadowOffsetVW = new Vector2(0f, -0.5f); // 기존 UXML의 0 -10px 느낌
+    private Vector2 m_ShadowOffsetVW = new Vector2(0f, -0.5f);
 
     [UxmlAttribute]
     public float ShadowBlurVW
@@ -136,7 +136,6 @@ public partial class StageSelect : VisualElement
 
     #region Initialization & Layout
 
-    // [수정됨] Label 대신 LocalizedLabel 사용
     private LocalizedLabel m_Label;
     private VisualElement m_StarsContainer;
     private Image[] m_StarImages = new Image[5];

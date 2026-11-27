@@ -69,6 +69,12 @@ namespace MatchDefense.Match
         private float CellStride => itemSize * (1f + cellSpacing);
         private bool isInitialized;
 
+        private bool pendingTutorialLShape;
+        private int tutorialTargetType;
+        private bool restrictToTutorialMove;
+        private Vector2Int tutFrom;
+        private Vector2Int tutTo;
+
         public MatchBoard()
         {
             AddToClassList(BoardClass);
@@ -130,6 +136,76 @@ namespace MatchDefense.Match
                 DeselectNode();
                 ResetHint();
             }
+        }
+
+        public void SetupTutorialLShapeMatch(int targetType = 0, bool lockOtherMoves = true)
+        {
+            tutorialTargetType = Mathf.Clamp(targetType, 0, Mathf.Max(0, (unitDatas?.Length ?? 1) - 1));
+            restrictToTutorialMove = lockOtherMoves;
+            pendingTutorialLShape = true;
+
+            if (boardItems != null && isInitialized && itemSize > 0)
+            {
+                ApplyTutorialLShapeLayout();
+            }
+        }
+
+        public void ClearTutorialMoveLock()
+        {
+            restrictToTutorialMove = false;
+            pendingTutorialLShape = false;
+        }
+
+        private void ApplyTutorialLShapeLayout()
+        {
+            pendingTutorialLShape = false;
+            if (boardItems == null || unitDatas == null || unitDatas.Length < 2) return;
+            if (WidthCount < 5 || HeightCount < 4) return;
+
+            for (int y = 0; y < HeightCount; y++)
+            {
+                for (int x = 0; x < WidthCount; x++)
+                {
+                    int safeType = GetNonTargetTypeWithoutMatch(x, y, tutorialTargetType);
+                    GetItem(x, y)?.ChangeType(safeType);
+                }
+            }
+
+            int cornerX = 2;
+            int cornerY = 3;
+
+            GetItem(cornerX, cornerY - 2)?.ChangeType(tutorialTargetType); // (2, 1)
+            GetItem(cornerX, cornerY - 1)?.ChangeType(tutorialTargetType); // (2, 2)
+            GetItem(cornerX + 1, cornerY)?.ChangeType(tutorialTargetType); // (3, 3)
+            GetItem(cornerX + 2, cornerY)?.ChangeType(tutorialTargetType); // (4, 3)
+            GetItem(cornerX - 1, cornerY)?.ChangeType(tutorialTargetType); // (1, 3)
+
+            int cornerOtherType = (tutorialTargetType + 1) % unitDatas.Length;
+            GetItem(cornerX, cornerY)?.ChangeType(cornerOtherType);
+
+            tutFrom = new Vector2Int(cornerX - 1, cornerY);
+            tutTo = new Vector2Int(cornerX, cornerY);
+
+            ResetHint();
+            ShowSpecificHint(tutFrom.x, tutFrom.y, tutTo.x, tutTo.y);
+        }
+
+        private int GetNonTargetTypeWithoutMatch(int x, int y, int excludedType)
+        {
+            int count = unitDatas.Length;
+            if (count <= 1) return 0;
+
+            for (int attempt = 0; attempt < 20; attempt++)
+            {
+                int candidate = UnityEngine.Random.Range(0, count);
+                if (candidate == excludedType) continue;
+
+                bool matchX = (x >= 2 && GetItem(x - 1, y)?.ItemType == candidate && GetItem(x - 2, y)?.ItemType == candidate);
+                bool matchY = (y >= 2 && GetItem(x, y - 1)?.ItemType == candidate && GetItem(x, y - 2)?.ItemType == candidate);
+                if (!matchX && !matchY) return candidate;
+            }
+
+            return (excludedType + 1) % count;
         }
 
         #region Layout
@@ -251,6 +327,11 @@ namespace MatchDefense.Match
                 boardValid = CheckPossibleMoves();
                 maxAttempts--;
             }
+
+            if (pendingTutorialLShape)
+            {
+                ApplyTutorialLShapeLayout();
+            }
         }
 
         private MatchItemElement GetItemFromPool(Vector2 spawnPos)
@@ -328,6 +409,21 @@ namespace MatchDefense.Match
                 {
                     if (Mathf.Abs(x - selectedX) + Mathf.Abs(y - selectedY) == 1)
                     {
+                        if (restrictToTutorialMove)
+                        {
+                            bool validForward = (selectedX == tutFrom.x && selectedY == tutFrom.y && x == tutTo.x && y == tutTo.y);
+                            bool validReverse = (selectedX == tutTo.x && selectedY == tutTo.y && x == tutFrom.x && y == tutFrom.y);
+                            if (!validForward && !validReverse)
+                            {
+                                GetItem(selectedX, selectedY)?.Hover(false);
+                                selectedX = -1;
+                                selectedY = -1;
+                                ShowSpecificHint(tutFrom.x, tutFrom.y, tutTo.x, tutTo.y);
+                                return;
+                            }
+                            restrictToTutorialMove = false;
+                        }
+
                         GetItem(selectedX, selectedY)?.Hover(false);
                         coroutineRunner.StartCoroutine(SwapRoutine(selectedX, selectedY, x, y));
                         selectedX = -1;
@@ -745,7 +841,13 @@ namespace MatchDefense.Match
             if (!isProcessing && selectedX == -1)
             {
                 idleTimer += Time.unscaledDeltaTime;
-                if (idleTimer >= HintDelay && currentHintItem == null) ShowHint();
+                if (idleTimer >= HintDelay && currentHintItem == null)
+                {
+                    if (restrictToTutorialMove)
+                        ShowSpecificHint(tutFrom.x, tutFrom.y, tutTo.x, tutTo.y);
+                    else
+                        ShowHint();
+                }
             }
             else
             {
@@ -756,17 +858,21 @@ namespace MatchDefense.Match
         private void ShowHint()
         {
             if (GetPossibleMove(out int x1, out int y1, out int x2, out int y2))
-            {
-                currentHintItem = GetItem(x1, y1);
-                if (currentHintItem == null) return;
+                ShowSpecificHint(x1, y1, x2, y2);
+        }
 
-                Vector2 moveDir = (GetCellPosition(x2, y2) - currentHintItem.BoardPos).normalized * (itemSize * 0.3f);
-                hintSeq = DOTween.Sequence().SetUpdate(true);
-                hintSeq.Append(DOVirtual.Vector2(Vector2.zero, moveDir, 0.15f, v => currentHintItem.style.translate = new Translate(v.x, v.y)).SetEase(Ease.OutQuad));
-                hintSeq.Append(DOVirtual.Vector2(moveDir, Vector2.zero, 0.15f, v => currentHintItem.style.translate = new Translate(v.x, v.y)).SetEase(Ease.InQuad));
-                hintSeq.AppendInterval(1.0f);
-                hintSeq.SetLoops(-1);
-            }
+        public void ShowSpecificHint(int x1, int y1, int x2, int y2)
+        {
+            ResetHint();
+            currentHintItem = GetItem(x1, y1);
+            if (currentHintItem == null) return;
+
+            Vector2 moveDir = (GetCellPosition(x2, y2) - currentHintItem.BoardPos).normalized * (itemSize * 0.35f);
+            hintSeq = DOTween.Sequence().SetUpdate(true);
+            hintSeq.Append(DOVirtual.Vector2(Vector2.zero, moveDir, 0.22f, v => currentHintItem.style.translate = new Translate(v.x, v.y)).SetEase(Ease.OutQuad));
+            hintSeq.Append(DOVirtual.Vector2(moveDir, Vector2.zero, 0.22f, v => currentHintItem.style.translate = new Translate(v.x, v.y)).SetEase(Ease.InQuad));
+            hintSeq.AppendInterval(0.7f);
+            hintSeq.SetLoops(-1);
         }
 
         private void ResetHint()

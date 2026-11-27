@@ -1,0 +1,289 @@
+.pause-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgba(18, 9, 4, 0.76);
+    justify-content: center;
+    align-items: center;
+}
+
+.pause-overlay.hide,
+.reset-confirm-overlay.hide {
+    display: none;
+}
+
+.pause-window {
+    width: 90%;
+    max-width: 960px;
+    padding: 44px 40px;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: stretch;
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Rects.png?fileID=-981860313&guid=d8cd81cc99e6902459f2c392b35ef169&type=3#Clay_Rects_4");
+    -unity-background-image-tint-color: rgb(110, 62, 30);
+    -unity-slice-left: 10;
+    -unity-slice-top: 10;
+    -unity-slice-right: 10;
+    -unity-slice-bottom: 10;
+    filter: drop-shadow(0 8 16 rgba(0, 0, 0, 0.6));
+}
+
+.pause-header {
+    width: 100%;
+    height: 96px;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 24px;
+    position: relative;
+}
+
+.pause-title {
+    width: 72%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    font-size: 56px;
+    color: rgb(255, 243, 228);
+    text-shadow: 2px 3px 4px rgba(0, 0, 0, 0.55);
+}
+
+.pause-close-btn {
+    position: absolute;
+    right: 0;
+    height: 78px;
+    width: 78px;
+    margin: 0;
+    padding: 0;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Rects.png?fileID=-1374895064&guid=d8cd81cc99e6902459f2c392b35ef169&type=3#Clay_Rects_12");
+    -unity-background-image-tint-color: rgb(196, 70, 56);
+    -unity-slice-left: 7;
+    -unity-slice-top: 7;
+    -unity-slice-right: 7;
+    -unity-slice-bottom: 7;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    font-size: 40px;
+    color: rgb(255, 245, 238);
+    transition-property: scale;
+    transition-duration: 0.1s;
+}
+
+.pause-close-btn:active {
+    -unity-background-image-tint-color: rgb(158, 52, 42);
+    scale: 0.92 0.92;
+}
+
+.pause-settings {
+    width: 100%;
+    padding: 26px 28px;
+    margin-bottom: 26px;
+    flex-direction: column;
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Rects.png?fileID=-981860313&guid=d8cd81cc99e6902459f2c392b35ef169&type=3#Clay_Rects_4");
+    -unity-background-image-tint-color: rgb(74, 40, 18);
+    -unity-slice-left: 8;
+    -unity-slice-top: 8;
+    -unity-slice-right: 8;
+    -unity-slice-bottom: 8;
+}
+
+.setting-row {
+    width: 100%;
+    height: 92px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.setting-label {
+    width: 38%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-left;
+    font-size: 34px;
+    color: rgb(246, 222, 196);
+    text-shadow: 1px 2px 3px rgba(0, 0, 0, 0.45);
+}
+
+.setting-slider {
+    width: 58%;
+    height: 64px;
+    margin: 0;
+    padding: 0;
+    justify-content: center;
+}
+
+.setting-slider .unity-base-slider__tracker {
+    height: 22px;
+    margin-top: -11px;
+    border-radius: 11px;
+    background-color: rgb(42, 20, 8);
+    border-width: 2px;
+    border-color: rgb(98, 56, 26);
+}
+
+.setting-slider .unity-base-slider__dragger {
+    width: 52px;
+    height: 52px;
+    margin-top: -26px;
+    border-radius: 26px;
+    background-color: rgb(236, 158, 78);
+    border-width: 4px;
+    border-color: rgb(255, 244, 226);
+}
+
+.setting-toggle,
+.setting-action-btn {
+    width: 52%;
+    height: 74px;
+    margin: 0;
+    padding: 0 16px;
+    border-width: 0;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0);
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Rects.png?fileID=-1374895064&guid=d8cd81cc99e6902459f2c392b35ef169&type=3#Clay_Rects_12");
+    -unity-background-image-tint-color: rgb(138, 82, 42);
+    -unity-slice-left: 7;
+    -unity-slice-top: 7;
+    -unity-slice-right: 7;
+    -unity-slice-bottom: 7;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    font-size: 34px;
+    color: rgb(255, 245, 232);
+    text-shadow: 1px 2px 3px rgba(0, 0, 0, 0.45);
+    transition-property: scale;
+    transition-duration: 0.1s;
+}
+
+.setting-action-btn:active,
+.setting-toggle:active {
+    scale: 0.95 0.95;
+}
+
+.setting-danger-btn {
+    -unity-background-image-tint-color: rgb(192, 58, 48);
+}
+
+.setting-toggle:checked {
+    -unity-background-image-tint-color: rgb(196, 122, 52);
+}
+
+.setting-toggle .unity-toggle__input {
+    display: none;
+}
+
+.setting-toggle .toggle-on-txt,
+.setting-toggle .toggle-off-txt {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    font-size: 34px;
+    color: rgb(255, 245, 232);
+}
+
+.setting-toggle .toggle-on-txt { display: none; }
+.setting-toggle .toggle-off-txt { display: flex; }
+.setting-toggle:checked .toggle-on-txt { display: flex; }
+.setting-toggle:checked .toggle-off-txt { display: none; }
+
+.pause-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.pause-action-btn {
+    height: 88px;
+    margin: 0;
+    padding: 0;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Rects.png?fileID=-1374895064&guid=d8cd81cc99e6902459f2c392b35ef169&type=3#Clay_Rects_12");
+    -unity-slice-left: 7;
+    -unity-slice-top: 7;
+    -unity-slice-right: 7;
+    -unity-slice-bottom: 7;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    font-size: 38px;
+    color: rgb(255, 245, 232);
+    text-shadow: 1px 2px 3px rgba(0, 0, 0, 0.45);
+    transition-property: scale;
+    transition-duration: 0.1s;
+}
+
+.pause-action-btn:active {
+    scale: 0.96 0.96;
+}
+
+.resume-btn {
+    width: 100%;
+    margin-bottom: 16px;
+    -unity-background-image-tint-color: rgb(196, 120, 52);
+}
+
+.pause-sub-actions {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.sub-btn {
+    width: 48%;
+    -unity-background-image-tint-color: rgb(138, 78, 38);
+}
+
+.reset-confirm-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgba(10, 5, 2, 0.84);
+    justify-content: center;
+    align-items: center;
+}
+
+.reset-confirm-box {
+    width: 84%;
+    max-width: 820px;
+    padding: 40px 34px;
+    background-color: rgb(94, 52, 24);
+    border-radius: 24px;
+    border-width: 4px;
+    border-color: rgb(214, 146, 86);
+    flex-direction: column;
+    align-items: center;
+}
+
+.reset-confirm-text {
+    width: 100%;
+    min-height: 110px;
+    margin-bottom: 28px;
+    white-space: normal;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    font-size: 36px;
+    color: rgb(255, 243, 228);
+}
+
+.reset-confirm-buttons {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+}

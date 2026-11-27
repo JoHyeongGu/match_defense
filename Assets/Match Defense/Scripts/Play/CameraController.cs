@@ -89,7 +89,7 @@ namespace MatchDefense
         #region Input
         private void HandleMouseInput()
         {
-            if (Defense.UnitSpawnManager.IsDraggingUnit) return;
+            if (Match.MatchManager.IsDraggingUnit) return;
             if (Mouse.current == null) return;
 
             if (UnityEngine.EventSystems.EventSystem.current != null &&
@@ -120,7 +120,7 @@ namespace MatchDefense
 
         private void HandleMobileInput()
         {
-            if (Defense.UnitSpawnManager.IsDraggingUnit) return;
+            if (Match.MatchManager.IsDraggingUnit) return;
 
             int touchCount = Touch.activeTouches.Count;
             if (touchCount == 0) return;

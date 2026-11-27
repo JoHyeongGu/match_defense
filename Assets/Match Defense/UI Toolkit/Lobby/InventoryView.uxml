@@ -1,5 +1,40 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:VisualElement name="store-panel" style="flex-grow: 1; background-color: rgb(255, 231, 179); position: absolute; flex-shrink: 0; height: 100%; width: 100%;">
-        <ui:Label text="INVENTORY" name="store-text" style="width: 100%; height: 100%; -unity-font-style: bold; -unity-text-align: middle-center; font-size: 50px;"/>
+    <Style src="InventoryStyle.uss" />
+    <ui:VisualElement name="inventory-panel" class="inven-page-root">
+        <ui:VisualElement class="inven-content-wrap">
+            <!-- 상단: 최대 5개 장착 슬롯 -->
+            <ui:VisualElement class="inven-section inven-equip-section">
+                <LocalizedLabel localization-key="inven_equipped_title" text="EQUIPPED DECK (MAX 5)" font-size="0" class="inven-section-title" />
+                <ui:VisualElement name="equip-slots-row" class="equip-slots-row" />
+            </ui:VisualElement>
+
+            <!-- 중단: 선택한 유닛 상세 및 직관적 강화 게이지 바 -->
+            <ui:VisualElement name="inven-detail-panel" class="inven-detail-panel">
+                <ui:VisualElement class="detail-top-row">
+                    <ui:VisualElement name="detail-unit-icon" class="detail-unit-icon" />
+                    <ui:VisualElement class="detail-info-col">
+                        <ui:Label text="Bread" name="detail-unit-name" class="detail-unit-name" />
+                        <ui:Label text="Lv.1 / 10" name="detail-unit-level" class="detail-unit-level" />
+                        <ui:Label text="ATK 1.0 | CD 1.00s" name="detail-unit-stats" class="detail-unit-stats" />
+                        <ui:VisualElement class="detail-stack-bar-bg">
+                            <ui:VisualElement name="detail-stack-fill" class="detail-stack-bar-fill" />
+                            <ui:Label text="0 / 2" name="detail-unit-stack" class="detail-stack-bar-txt" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement class="detail-actions-row">
+                    <ui:Button text="EQUIP" name="detail-equip-btn" class="detail-btn detail-btn--equip" />
+                    <ui:Button text="UPGRADE (50 C)" name="detail-upgrade-btn" class="detail-btn detail-btn--upgrade" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <!-- 하단: 보유 유닛 전체 목록 -->
+            <ui:VisualElement class="inven-section inven-owned-section">
+                <LocalizedLabel localization-key="inven_owned_title" text="OWNED UNITS" font-size="0" class="inven-section-title inven-owned-title" />
+                <ui:ScrollView class="owned-scroll">
+                    <ui:VisualElement name="owned-units-grid" class="owned-units-grid" />
+                </ui:ScrollView>
+            </ui:VisualElement>
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

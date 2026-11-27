@@ -11,3 +11,71 @@ stage_sub_3,"3. 달려라, 빨간머리 균",3. Germ of Red Runner
 stage_sub_4,4. 밀가루 산맥의 굳건한 의지,4. Slow but Steady Determination
 stage_sub_5,5. 매끈매끈하다. 매끈매끈한,5. Have a Smooth Smile!
 stage_sub_6,6. 과유불급,6. So many Germs
+tut_skip,건너뛰기,SKIP
+tut_tap_continue,화면을 터치해 계속하세요,Tap anywhere to continue
+tut_s1_welcome_1,큰일 났어요!\n치즈가 마법 에센스를 하수구에 쏟았지 뭐예요.\n살아난 곰팡이들이 몰려오고 있어요!,Oh boy! Big trouble!\nCheese spilled the Magic Essence down the drain.\nNow the mold's alive and storming in!
+tut_s1_welcome_2,하지만 걱정 마세요!\n재료를 매치해 자원을 모으면\n베이커리 용병을 깨울 수 있어요.\n자! 마법 에센스로 곰팡이를 막아내요!,Good thing we have some Essence left!\nMatch ingredients to gather resources and bring our Bakery Mercs to life.\nLet's team up and stop that mold!
+tut_s1_match,블록을 드래그해서 같은 블록 3개 이상을 맞춰보세요!,Drag a block to match 3 or more of the same kind!
+tut_s1_turn,정해진 횟수만큼만 드래그할 수 있고\n적을 처치하여 다시 횟수를 하나씩 충전할 수 있어요!,Your moves are limited! Defeat enemies to recharge them one by one!
+tut_s1_place,게이지가 차면 상단 슬롯에서\n유닛을 드래그해 필드에 배치할 수 있어요!,"Once charged, drag your unit from the top slot onto the field!"
+tut_s1_press_play,"이제 어느 정도 유닛을 배치했으니,\n시작 버튼을 눌러볼까요?","You've placed your unit! Shall we press the Start button?"
+tut_s1_watch_enemy,적이 등장했어요! 배치한 유닛이 적을 잘 처치하는지 확인해볼까요?,An enemy has appeared! Let's watch your unit take it down!
+tut_s1_done,잘했어요! 이제 40웨이브까지 주방을 지켜내세요!,Great job! Now defend the kitchen all the way to Wave 40!
+tut_s2_enemy_runner,새로운 적 [스피드 세균]이 나타났어요! 체력은 낮지만 이동 속도가 매우 빠르니 주의하세요!,"A new enemy [Speed Germ] has appeared! Low HP, but moves very fast — watch out!"
+tut_s2_enemy_tanker,새로운 적 [탱커 세균]이 나타났어요! 속도는 느리지만 체력이 아주 높아요!,"A new enemy [Tanker Germ] has appeared! Slow, but has very high HP!"
+tut_lobby_welcome,1스테이지 클리어 축하해요! 이제 새로운 유닛을 얻으러 가볼까요?,Congrats on clearing Stage 1! Let's go get a new unit!
+tut_lobby_open_store,하단의 [상점] 탭을 눌러보세요!,Tap the [Store] tab at the bottom!
+tut_lobby_draw_gacha,뽑기 버튼을 눌러 새로운 유닛을 획득해보세요!,Press the Summon button to get a new unit!
+tut_lobby_open_inven,새로운 유닛을 얻었어요! 이제 [인벤토리] 탭을 눌러 확인해볼까요?,You got a new unit! Tap the [Inventory] tab to check it out!
+tut_lobby_equip_unit,방금 뽑은 유닛을 선택하고 [장착] 버튼을 눌러 덱에 넣어보세요!,Select your new unit and tap [EQUIP] to add it to your deck!
+tut_lobby_done,완벽해요! 이제 더 강해진 덱으로 2스테이지에 도전해보세요!,Awesome! Now challenge Stage 2 with your stronger deck!
+store_gacha_title,유닛 랜덤 뽑기,UNIT SUMMON
+store_draw_btn,1회 뽑기,SUMMON x1
+store_free,무료 (튜토리얼),FREE (TUTORIAL)
+store_ready_msg,코인을 사용해\n랜덤 유닛을 뽑아보세요!,Use coins to summon a random unit!
+store_not_enough_coins,코인이 부족합니다.,Not enough coins.
+store_new_unit_badge,새로운 유닛 등장!,NEW UNIT!
+store_duplicate_badge,중복 획득! 스택 +1,DUPLICATE! STACK +1
+store_check_inventory,인벤토리에서 확인하고 장착할 수 있어요!,Check and equip it in your Inventory!
+inven_equipped_title,장착된 유닛 (최대 5),EQUIPPED DECK (MAX 5)
+inven_owned_title,보유 중인 유닛,OWNED UNITS
+inven_equip,장착,EQUIP
+inven_unequip,해제,UNEQUIP
+inven_upgrade,강화,UPGRADE
+pause_title,일시정지,PAUSE
+setting_title,설정,SETTINGS
+setting_lang_value,한국어 (KO),English (EN)
+setting_reset_btn,초기화,RESET
+setting_reset_confirm_msg,모든 진행 데이터(코인, 유닛, 스테이지)를 초기화할까요?,Reset all progress data (coins, units, stages)?
+common_cancel,취소,CANCEL
+common_confirm,확인,CONFIRM
+pause_resume,계속하기,RESUME
+pause_restart,다시 플레이,RETRY
+pause_lobby,로비로,LOBBY
+endless_prompt_desc,40웨이브 생존에 성공했어요! 무한 모드로 더 도전할까요, 아니면 보상을 받고 끝낼까요?,You survived Wave 40! Continue in Endless Mode or stop and claim your rewards?
+endless_continue_btn,무한 모드 계속하기,CONTINUE ENDLESS
+endless_stop_btn,그만하고 보상 받기,STOP & CLAIM
+result_victory,스테이지 클리어!,STAGE CLEAR!
+result_defeat,방어 실패,GAME OVER
+result_clear_reward,클리어 보상,Clear Reward
+result_turn_bonus,남은 턴 보너스,Remaining Turn Bonus
+unit_bread_name,식빵,Bread
+unit_baguette_name,바게트,Baguette
+unit_soboro_name,소보로,Soboro
+unit_pretzel_name,프레첼,Pretzel
+unit_strawberry_jam_name,딸기잼,Strawberry Jam
+unit_butter_name,버터,Butter
+enemy_normal_name,검은 빵 곰팡이,Rhizopus stolonifer
+enemy_normal_desc,기본 곰팡이,Basic Black Germ
+enemy_runner_name,붉은 빵 곰팡이,Neurospora crassa
+enemy_runner_desc,빠르지만 약한 곰팡이,Speed but week Germ
+quest_page_title,퀘스트,QUESTS
+quest_claim,보상 받기,CLAIM
+quest_claimed,완료,DONE
+quest_in_progress,진행 중,ONGOING
+quest_match_5_title,매치 5회 성공,Match 5 Times
+quest_place_3_title,유닛 3회 배치,Place 3 Units
+quest_kill_10_title,적 10마리 처치,Defeat 10 Enemies
+quest_gacha_1_title,상점에서 유닛 1회 뽑기,Summon 1 Unit
+quest_upgrade_1_title,유닛 1회 강화,Upgrade 1 Unit
+quest_stage_1_title,스테이지 1회 클리어,Clear 1 Stage

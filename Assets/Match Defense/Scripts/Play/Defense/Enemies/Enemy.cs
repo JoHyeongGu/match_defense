@@ -1,7 +1,8 @@
+using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
-using System.Collections;
 
 namespace MatchDefense.Defense
 {
@@ -9,8 +10,14 @@ namespace MatchDefense.Defense
     {
         private enum State { Walk, Die }
 
+        [Header("<color=yellow>Enemy Identity</color>")]
+        [SerializeField] private string enemyId = "enemy_normal";
+        [SerializeField] private string nameLocalizationKey = "enemy_normal_name";
+        [SerializeField] private string descLocalizationKey = "enemy_normal_desc";
+
         [Header("<color=yellow>Move</color>")]
         [SerializeField] private float speed = 1f;
+        [SerializeField] private int leakDamage = 1;
 
         [Header("<color=yellow>Animation</color>")]
         [SerializeField] private int animIndex = 0;
@@ -20,12 +27,19 @@ namespace MatchDefense.Defense
         [SerializeField] private RectTransform hpUIPrefab;
         [SerializeField] private Vector3 hpBarOffset = new Vector3(0, 1.5f, 0);
 
-        public float CurrentSpeed => pathTween != null ? speed * pathTween.timeScale : speed;
+        public string EnemyId => enemyId;
+        public string NameLocalizationKey => nameLocalizationKey;
+        public string DescLocalizationKey => descLocalizationKey;
+        public float CurrentSpeed => pathTween != null ? runtimeSpeed * pathTween.timeScale : runtimeSpeed;
         public float TraveledDistance { get; private set; }
+
+        public static event Action<Enemy> OnAnyEnemyDied;
+        public event Action<Enemy> OnDied;
 
         private Tween pathTween;
         private MaterialPropertyBlock propBlock;
         private float pathLength;
+        private float runtimeSpeed;
         private Vector3 initialMeshScale;
 
         private Camera mainCam;
@@ -33,7 +47,8 @@ namespace MatchDefense.Defense
         private Image hpFillImage;
         private bool isHpBarActive = false;
         private bool isDead;
-        
+        private bool hasReachedGoal;
+
         private static readonly int CurrentAnimIndexId = Shader.PropertyToID("_CurrentAnimIndex");
         private static readonly int TransitionStartTimeId = Shader.PropertyToID("_TransitionStartTime");
         private static readonly int StartTime0Id = Shader.PropertyToID("_StartTime0");
@@ -42,9 +57,11 @@ namespace MatchDefense.Defense
         private static readonly int VatPosTex0Id = Shader.PropertyToID("_VatPosTex0");
         private static readonly int VatPosTex1Id = Shader.PropertyToID("_VatPosTex1");
 
+        #region Unity Lifecycle
         protected override void Awake()
         {
             base.Awake();
+            runtimeSpeed = speed;
 
             mainCam = Camera.main;
             propBlock = new MaterialPropertyBlock();
@@ -60,24 +77,9 @@ namespace MatchDefense.Defense
             InitHPBar();
         }
 
-        private void InitHPBar()
-        {
-            if (hpUIPrefab == null) return;
-
-            Canvas mainCanvas = FindAnyObjectByType<Canvas>();
-            if (mainCanvas != null)
-            {
-                hpBarInstance = Instantiate(hpUIPrefab, mainCanvas.transform);
-                hpFillImage = hpBarInstance.GetComponentsInChildren<Image>()[1];
-                hpBarInstance.gameObject.SetActive(false);
-                isHpBarActive = false;
-            }
-        }
-
         private void LateUpdate()
         {
-            // HP 바가 활성화되었을 때만 월드 좌표를 스크린 픽셀 좌표로 변환하여 UI 이동 (최적화 포인트)
-            if (isHpBarActive && hpBarInstance != null)
+            if (isHpBarActive && hpBarInstance != null && mainCam != null)
             {
                 hpBarInstance.position = mainCam.WorldToScreenPoint(transform.position + hpBarOffset);
             }
@@ -87,7 +89,6 @@ namespace MatchDefense.Defense
         {
             pathTween?.Kill();
 
-            // 적이 파괴될 때 Screen Space에 띄워둔 UI도 함께 파괴
             if (hpBarInstance != null)
             {
                 hpFillImage?.DOKill();
@@ -96,13 +97,35 @@ namespace MatchDefense.Defense
 
             if (EnemySpawner.Instance != null) EnemySpawner.Instance.RemoveEnemy(this);
         }
+        #endregion
+
+        #region UI
+        private void InitHPBar()
+        {
+            if (hpUIPrefab == null) return;
+
+            Canvas mainCanvas = FindAnyObjectByType<Canvas>();
+            if (mainCanvas != null)
+            {
+                hpBarInstance = Instantiate(hpUIPrefab, mainCanvas.transform);
+                Image[] images = hpBarInstance.GetComponentsInChildren<Image>();
+                if (images.Length > 1) hpFillImage = images[1];
+                else if (images.Length == 1) hpFillImage = images[0];
+                hpBarInstance.gameObject.SetActive(false);
+                isHpBarActive = false;
+            }
+        }
+        #endregion
 
         #region State
-        public void Init(Vector3[] waypoints, float length)
+        public void Init(Vector3[] waypoints, float length, float hpMultiplier = 1f, float speedMultiplier = 1f)
         {
             if (waypoints == null || waypoints.Length == 0) return;
 
             pathLength = length;
+            maxHP = Mathf.Max(0.1f, maxHP * Mathf.Max(0.1f, hpMultiplier));
+            currentHP = maxHP;
+            runtimeSpeed = Mathf.Max(0.1f, speed * Mathf.Max(0.1f, speedMultiplier));
 
             if (bodyRenderer != null)
             {
@@ -112,16 +135,25 @@ namespace MatchDefense.Defense
                 bodyRenderer.SetPropertyBlock(propBlock);
             }
 
-            pathTween = transform.DOPath(waypoints, speed, PathType.Linear)
-            .SetSpeedBased(true)
-            .SetEase(Ease.Linear)
-            .SetLookAt(0.003f)
-            .OnUpdate(() => TraveledDistance = pathTween.ElapsedPercentage() * pathLength)
-            .OnComplete(() =>
-            {
-                pathTween = null;
-                Destroy(gameObject);
-            });
+            pathTween = transform.DOPath(waypoints, runtimeSpeed, PathType.Linear)
+                .SetSpeedBased(true)
+                .SetEase(Ease.Linear)
+                .SetLookAt(0.003f)
+                .OnUpdate(() => TraveledDistance = pathTween.ElapsedPercentage() * pathLength)
+                .OnComplete(() =>
+                {
+                    pathTween = null;
+                    OnReachedGoal();
+                });
+        }
+
+        private void OnReachedGoal()
+        {
+            if (isDead || hasReachedGoal) return;
+            hasReachedGoal = true;
+
+            GameManager.Instance?.TakeDamage(leakDamage);
+            Destroy(gameObject);
         }
 
         public override void Attacked(float damage)
@@ -130,16 +162,14 @@ namespace MatchDefense.Defense
 
             float hpRatio = Mathf.Clamp01((currentHP - damage) / maxHP);
 
-            // 데미지를 받는 순간 HP 바 표시
             if (!isHpBarActive && hpBarInstance != null)
             {
                 isHpBarActive = true;
                 hpBarInstance.gameObject.SetActive(true);
-                // 켜지자마자 현재 위치로 즉시 갱신시켜 튀는 현상 방지
-                hpBarInstance.position = mainCam.WorldToScreenPoint(transform.position + hpBarOffset);
+                if (mainCam != null)
+                    hpBarInstance.position = mainCam.WorldToScreenPoint(transform.position + hpBarOffset);
             }
 
-            // DOTween으로 부드럽게 깎이는 연출
             if (hpFillImage != null)
             {
                 hpFillImage.DOKill();
@@ -156,17 +186,22 @@ namespace MatchDefense.Defense
             base.Attacked(damage);
         }
 
-        protected override async void Die()
+        protected override void Die()
         {
             if (isDead) return;
             isDead = true;
 
             Match.MatchManager.Instance?.AddTurn(1);
+            SoundManager.Instance?.PlaySFX(SfxType.EnemyDie);
 
             pathTween?.Pause();
 
             if (hpBarInstance != null) hpBarInstance.gameObject.SetActive(false);
             isHpBarActive = false;
+
+            OnDied?.Invoke(this);
+            ProgramManager.Instance?.AddQuestProgress(QuestType.KillEnemy, 1);
+            OnAnyEnemyDied?.Invoke(this);
 
             StartCoroutine(DieRoutine());
         }
@@ -181,6 +216,12 @@ namespace MatchDefense.Defense
                 transform.DOKill();
                 Destroy(gameObject);
             });
+        }
+
+        public void SetTutorialHP(float hp = 0.1f)
+        {
+            maxHP = Mathf.Max(0.01f, hp);
+            currentHP = maxHP;
         }
 
         public void SetMoveSpeed(float _multi = 1.0f)

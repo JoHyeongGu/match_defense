@@ -9,7 +9,10 @@ EditorBuildSettings:
     path: Assets/Match Defense/Scenes/Lobby.unity
     guid: 4e782cffbef7c5b4681f564818f2f82a
   - enabled: 1
-    path: Assets/Match Defense/Scenes/Play.unity
+    path: Assets/Match Defense/Scenes/Stage_01.unity
     guid: c89fcc82dcfd86042959cb1a270c9d95
+  - enabled: 1
+    path: Assets/Match Defense/Scenes/Play.unity
+    guid: 2f8e20dc151f90940a95f314718ff479
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

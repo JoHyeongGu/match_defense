@@ -10,12 +10,17 @@ namespace MatchDefense.Match
     [Serializable]
     public class MatchUnitData
     {
+        public string unitId;
         public GameObject unitPrefab;
         public Sprite thumbnailSprite;
         public ItemVisual itemVisual;
         public float spawnWeight = 1f;
         public int maxCharge = 3;
         public Color sliderColor = Color.yellow;
+        public bool isUnlocked = true;
+        public int unitLevel = 1;
+        public float bonusDamage = 0f;
+        public float cooldownMultiplier = 1f;
     }
 
     public class MatchManager : MonoBehaviour
@@ -23,13 +28,25 @@ namespace MatchDefense.Match
         [Header("<color=yellow>References</color>")]
         [SerializeField] private PanelRenderer panelRenderer;
         [SerializeField] private Camera mainCamera;
-        [SerializeField] private CameraController cameraController;
-        [SerializeField] private WaveManager waveManager;
+        [SerializeField] private GameManager gameManager;
+
+        [Header("<color=yellow>Store System</color>")]
+        [SerializeField] private LayerMask boardLayer;
+        [SerializeField] private Color spawnableColor = Color.green;
+        [SerializeField] private Color unspawnableColor = Color.red;
 
         public static MatchManager Instance { get; private set; }
 
+        public event Action<int, int> OnMatchSucceeded;
+        public event Action<Unit> OnUnitPlaced;
+        public event Action OnPlayWaveButtonPressed;
+
+        public Func<bool> InterceptWaveStart;
+
         private int uiVersion = -1;
-        private VisualElement bottomRect;
+        private MatchUnitData[] activeUnitDatas;
+        private MatchBoard boardWidget;
+        private StoreBoard storeWidget;
 
         private void Awake()
         {
@@ -62,44 +79,61 @@ namespace MatchDefense.Match
             if (version == uiVersion) return;
             uiVersion = version;
             turnShakeTask = null;
-            bottomRect = rootElement.Q<VisualElement>("bottom-rect");
+
             InitPlayButton(rootElement);
             InitTurnCount(rootElement);
+
+            activeUnitDatas = ProgramManager.Instance != null
+                ? ProgramManager.Instance.BuildPlaySceneUnitDatas()
+                : null;
+
             boardWidget = rootElement.Q<MatchBoard>();
             storeWidget = rootElement.Q<StoreBoard>();
-            boardWidget?.Initialize(this, unitDatas, TriggerHapticAndSound, OnItemMatched, CanDragMatchBoard, PlayTurnWarningShake, ConsumeTurn);
-            storeWidget?.Initialize(this, unitDatas, HandleBeginDrag, HandleDrag, HandleEndDrag);
+            boardWidget?.Initialize(this, activeUnitDatas, TriggerHapticAndSound, OnItemMatched, CanDragMatchBoard, PlayTurnWarningShake, ConsumeTurn);
+            storeWidget?.Initialize(this, activeUnitDatas, HandleBeginDrag, HandleDrag, HandleEndDrag);
         }
 
         private void Start() => StartCoroutine(StartRoutine());
 
         private IEnumerator StartRoutine()
         {
-            ProgramManager.Instance.FadeScreen(off: true);
-            for (float t = 0f; t < 1f; t += Time.unscaledDeltaTime)
-                yield return null;
-            ProgramManager.Instance.FadeScreen(off: false, duration: 1f);
+            if (ProgramManager.Instance != null)
+            {
+                ProgramManager.Instance.FadeScreen(off: true, duration: 0f);
+                for (float t = 0f; t < 0.35f; t += Time.unscaledDeltaTime)
+                    yield return null;
+                ProgramManager.Instance.FadeScreen(off: false, duration: 0.6f);
+            }
         }
 
         private void OnDestroy()
         {
-            Time.timeScale = 1f;
+            GameManager.Instance?.SetDoubleSpeed(false);
         }
 
-        #region [Match] Core
-        [Header("<color=yellow>Match System</color>")]
-        [SerializeField] private MatchUnitData[] unitDatas;
+        #region [Match] Core & Tutorial Helpers
+        public void SetMatchActive(bool isActive) => boardWidget?.SetMatchActive(isActive);
 
-        private MatchBoard boardWidget;
-
-        public void SetMatchActive(bool isActive)
+        public void SetupTutorialLShapeBoard(int targetUnitIndex = 0)
         {
-            boardWidget?.SetMatchActive(isActive);
+            boardWidget?.SetupTutorialLShapeMatch(targetUnitIndex, lockOtherMoves: true);
+        }
+
+        public void ClearTutorialBoardLock()
+        {
+            boardWidget?.ClearTutorialMoveLock();
+        }
+
+        public void EnsureTutorialUnitAvailable(int slotIndex = 0)
+        {
+            storeWidget?.EnsureAtLeastOneUnit(slotIndex);
         }
 
         private void OnItemMatched(int unitIndex, int matchCount)
         {
             storeWidget?.AddCharge(unitIndex, matchCount);
+            ProgramManager.Instance?.AddQuestProgress(QuestType.MatchCount, 1);
+            OnMatchSucceeded?.Invoke(unitIndex, matchCount);
         }
         #endregion
 
@@ -141,6 +175,15 @@ namespace MatchDefense.Match
             if (evt.newValue)
             {
                 if (isWavePlaying) return;
+
+                OnPlayWaveButtonPressed?.Invoke();
+
+                if (InterceptWaveStart != null && InterceptWaveStart.Invoke())
+                {
+                    playButton?.SetValueWithoutNotify(false);
+                    return;
+                }
+
                 if (playUiCoroutine != null) StopCoroutine(playUiCoroutine);
                 playUiCoroutine = StartCoroutine(PlayRoutine());
             }
@@ -156,15 +199,9 @@ namespace MatchDefense.Match
             ApplyGameSpeed();
         }
 
-        private void OnAutoToggleChanged(ChangeEvent<bool> evt)
-        {
-            isAutoWave = evt.newValue;
-        }
+        private void OnAutoToggleChanged(ChangeEvent<bool> evt) => isAutoWave = evt.newValue;
 
-        private void ApplyGameSpeed()
-        {
-            Time.timeScale = (isWavePlaying && isDoubleSpeed) ? 2f : 1f;
-        }
+        private void ApplyGameSpeed() => GameManager.Instance?.SetDoubleSpeed(isWavePlaying && isDoubleSpeed);
 
         private void SyncWaveButtonState()
         {
@@ -175,8 +212,8 @@ namespace MatchDefense.Match
 
         private IEnumerator PlayRoutine()
         {
-            WaveManager targetWaveManager = waveManager != null ? waveManager : WaveManager.Instance;
-            if (targetWaveManager == null)
+            if (gameManager == null) gameManager = GameManager.Instance;
+            if (gameManager == null)
             {
                 playButton?.SetValueWithoutNotify(false);
                 playUiCoroutine = null;
@@ -187,7 +224,7 @@ namespace MatchDefense.Match
             ApplyGameSpeed();
 
             playButton?.AddToClassList("hide");
-            targetWaveManager.StartWave(autoContinueCheck, wavesCompletedCallback);
+            gameManager.StartWave(autoContinueCheck, wavesCompletedCallback);
 
             for (float t = 0f; t < 0.3f; t += Time.unscaledDeltaTime)
                 yield return null;
@@ -215,23 +252,6 @@ namespace MatchDefense.Match
             playButton?.RemoveFromClassList("hide");
             playUiCoroutine = null;
         }
-
-        private IEnumerator HideRoutine()
-        {
-            playButton?.AddToClassList("hide");
-            for (float t = 0f; t < 0.3f; t += Time.unscaledDeltaTime)
-                yield return null;
-
-            cameraController?.ResetAndMoveZ(0.6f, 1f);
-            boardWidget?.AddToClassList("hide");
-            storeWidget?.AddToClassList("hide");
-            bottomRect?.AddToClassList("hide");
-            for (float t = 0f; t < 0.5f; t += Time.unscaledDeltaTime)
-                yield return null;
-
-            turnCountRect?.AddToClassList("hide");
-            doubleBtn?.RemoveFromClassList("hide");
-        }
         #endregion
 
         #region [Match] Turn
@@ -250,28 +270,14 @@ namespace MatchDefense.Match
         private void InitTurnCount(VisualElement rootElement)
         {
             turnCountRect = rootElement.Q<VisualElement>("turn-count-rect");
-            turnCountText = turnCountRect.Q<TextElement>("turn-count");
+            turnCountText = turnCountRect?.Q<TextElement>("turn-count");
             UpdateTurnUI();
             StopTurnWarningShake();
         }
 
-        public void SetTurn(int turn)
-        {
-            currentTurn = Mathf.Max(0, turn);
-            UpdateTurnUI();
-        }
-
-        public void AddTurn(int amount)
-        {
-            currentTurn = Mathf.Max(0, currentTurn + amount);
-            UpdateTurnUI();
-        }
-
-        public void ResetTurn(int turn = 5)
-        {
-            currentTurn = Mathf.Max(0, turn);
-            UpdateTurnUI();
-        }
+        public void SetTurn(int turn) { currentTurn = Mathf.Max(0, turn); UpdateTurnUI(); }
+        public void AddTurn(int amount) { currentTurn = Mathf.Max(0, currentTurn + amount); UpdateTurnUI(); }
+        public void ResetTurn(int turn = 5) { currentTurn = Mathf.Max(0, turn); UpdateTurnUI(); }
 
         private bool CanDragMatchBoard() => currentTurn > 0;
 
@@ -284,14 +290,12 @@ namespace MatchDefense.Match
 
         private void UpdateTurnUI()
         {
-            if (turnCountText != null)
-                turnCountText.text = $"{currentTurn}";
+            if (turnCountText != null) turnCountText.text = $"{currentTurn}";
         }
 
         private void PlayTurnWarningShake()
         {
             if (turnCountText == null) return;
-
             turnShakeElapsed = 0f;
             if (turnShakeTask == null)
                 turnShakeTask = turnCountText.schedule.Execute(updateTurnShakeAction).Every(16);
@@ -308,15 +312,10 @@ namespace MatchDefense.Match
 
         private void UpdateTurnShake()
         {
-            if (turnCountText == null)
-            {
-                turnShakeTask?.Pause();
-                return;
-            }
+            if (turnCountText == null) { turnShakeTask?.Pause(); return; }
 
             turnShakeElapsed += Time.unscaledDeltaTime;
             float t = turnShakeElapsed / TurnShakeDuration;
-
             if (t >= 1f)
             {
                 turnCountText.style.translate = new Translate(0f, 0f);
@@ -330,35 +329,19 @@ namespace MatchDefense.Match
         #endregion
 
         #region [Match] Sound & Haptics
-        [SerializeField] private AudioClip[] matchClips;
-
-        private static readonly WaitForSeconds SfxIntervalWait = new WaitForSeconds(0.05f);
-
         private void TriggerHapticAndSound(float delayTime, int matchCount)
         {
-            StartCoroutine(DelayedHapticRoutine(delayTime, matchCount));
+            SoundManager.Instance?.PlayMatchComboSFX(matchCount);
+            StartCoroutine(DelayedHapticRoutine(delayTime));
         }
 
-        private IEnumerator DelayedHapticRoutine(float delayTime, int matchCount)
+        private IEnumerator DelayedHapticRoutine(float delayTime)
         {
-            if (SoundManager.Instance != null && matchClips != null && matchClips.Length > 0)
-            {
-                int safeMatchCount = Mathf.Max(1, matchCount);
-
-                for (int i = 0; i < safeMatchCount; i++)
-                {
-                    float pitch = 1f + (i * 0.08f);
-                    SoundManager.Instance.PlayRandomSFX(matchClips, 1f, pitch);
-                    if (i < safeMatchCount - 1)
-                    {
-                        for (float t = 0f; t < 0.05f; t += Time.unscaledDeltaTime)
-                            yield return null;
-                    }
-                }
-            }
-
             for (float elapsed = 0f; elapsed < delayTime; elapsed += Time.unscaledDeltaTime)
                 yield return null;
+
+            bool vibrationEnabled = ProgramManager.Instance == null || ProgramManager.Instance.IsVibrationEnabled;
+            if (!vibrationEnabled) yield break;
 
 #if UNITY_ANDROID && !UNITY_EDITOR
             try
@@ -377,19 +360,7 @@ namespace MatchDefense.Match
                     }
                 }
             }
-            catch
-            {
-                try
-                {
-                    using (AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
-                    using (AndroidJavaObject currentActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
-                    using (AndroidJavaObject vibrator = currentActivity.Call<AndroidJavaObject>("getSystemService", "vibrator"))
-                    {
-                        vibrator.Call("vibrate", 150L);
-                    }
-                }
-                catch { }
-            }
+            catch { }
 #elif UNITY_IOS && !UNITY_EDITOR
             Handheld.Vibrate();
 #endif
@@ -397,18 +368,13 @@ namespace MatchDefense.Match
         #endregion
 
         #region [Store] Unit Spawn
-        [Header("<color=yellow>Store System</color>")]
-        [SerializeField] private LayerMask boardLayer;
-        [SerializeField] private Color spawnableColor = Color.green;
-        [SerializeField] private Color unspawnableColor = Color.red;
-
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
         private static readonly Plane GroundPlane = new Plane(Vector3.up, Vector3.zero);
 
         public static bool IsDraggingUnit { get; private set; }
         public readonly List<Unit> SpawnedUnits = new();
 
-        private StoreBoard storeWidget;
+        private MatchUnitData currentDragUnitData;
         private GameObject currentDragPrefab;
         private GameObject previewInstance;
         private GameObject previewRangeIndicator;
@@ -422,10 +388,7 @@ namespace MatchDefense.Match
         private bool lastPreviewValid;
         private Vector3 spawnPos;
 
-        public void ResetStore()
-        {
-            storeWidget?.ResetAllSlots();
-        }
+        public void ResetStore() => storeWidget?.ResetAllSlots();
 
         public void AddSpawnedUnit(Unit unit)
         {
@@ -433,16 +396,14 @@ namespace MatchDefense.Match
                 SpawnedUnits.Add(unit);
         }
 
-        public void RemoveSpawnedUnit(Unit unit)
-        {
-            SpawnedUnits.Remove(unit);
-        }
+        public void RemoveSpawnedUnit(Unit unit) => SpawnedUnits.Remove(unit);
 
-        private void HandleBeginDrag(GameObject unitPrefab)
+        private void HandleBeginDrag(MatchUnitData unitData)
         {
-            if (unitPrefab == null) return;
+            if (unitData == null || unitData.unitPrefab == null || !unitData.isUnlocked) return;
 
-            currentDragPrefab = unitPrefab;
+            currentDragUnitData = unitData;
+            currentDragPrefab = unitData.unitPrefab;
             IsDraggingUnit = true;
 
             if (UnitBoard.Instance != null)
@@ -548,8 +509,19 @@ namespace MatchDefense.Match
             bool spawned = false;
             if (confirmSpawn && canSpawn)
             {
-                Instantiate(currentDragPrefab, spawnPos, Quaternion.identity);
+                GameObject instance = Instantiate(currentDragPrefab, spawnPos, Quaternion.identity);
+                Unit unitComp = instance.GetComponent<Unit>();
+                if (unitComp != null && currentDragUnitData != null)
+                {
+                    unitComp.ApplyUpgradeStats(
+                        currentDragUnitData.unitLevel,
+                        currentDragUnitData.bonusDamage,
+                        currentDragUnitData.cooldownMultiplier);
+                }
                 spawned = true;
+                SoundManager.Instance?.PlaySFX(SfxType.UnitPlace);
+                ProgramManager.Instance?.AddQuestProgress(QuestType.PlaceUnit, 1);
+                OnUnitPlaced?.Invoke(unitComp);
             }
 
             if (previewInstance != null) Destroy(previewInstance);
@@ -561,6 +533,7 @@ namespace MatchDefense.Match
             hasLastPreviewState = false;
             canSpawn = false;
             currentDragPrefab = null;
+            currentDragUnitData = null;
 
             return spawned;
         }

@@ -1,0 +1,166 @@
+.quest-page-root {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgb(58, 38, 29);
+}
+
+.quest-container-card {
+    position: absolute;
+    top: 8%;
+    bottom: 16.5%;
+    left: 4%;
+    right: 4%;
+    padding: 3% 3.5%;
+    border-radius: 32px;
+    background-color: rgb(116, 66, 32);
+    border-width: 5px;
+    border-color: rgb(214, 152, 86);
+    flex-direction: column;
+}
+
+.quest-header-title {
+    width: 100%;
+    height: 8.5%;
+    flex-shrink: 0;
+    margin-bottom: 2%;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    -unity-text-auto-size: best-fit 28px 64px;
+    color: rgb(255, 232, 168);
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+}
+
+.quest-scroll {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.quest-list-container {
+    width: 100%;
+    flex-direction: column;
+}
+
+.quest-card {
+    width: 100%;
+    height: 190px;
+    margin-bottom: 20px;
+    padding: 18px 22px;
+    border-radius: 24px;
+    background-color: rgb(78, 42, 18);
+    border-width: 4px;
+    border-color: rgb(174, 118, 62);
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.quest-card--ready {
+    border-color: rgb(116, 224, 122);
+    background-color: rgb(92, 54, 24);
+}
+
+.quest-card--claimed {
+    opacity: 0.6;
+}
+
+.quest-left-col {
+    width: 64%;
+    height: 100%;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+.quest-item-title {
+    width: 100%;
+    height: 46%;
+    margin: 0;
+    padding: 0;
+    white-space: normal;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-left;
+    -unity-text-auto-size: best-fit 22px 38px;
+    color: rgb(255, 246, 232);
+}
+
+.quest-progress-bg {
+    width: 100%;
+    height: 40%;
+    border-radius: 16px;
+    background-color: rgb(42, 22, 10);
+    border-width: 2px;
+    border-color: rgb(146, 94, 48);
+    overflow: hidden;
+    justify-content: center;
+    align-items: center;
+}
+
+.quest-progress-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgb(224, 152, 54);
+}
+
+.quest-progress-text {
+    width: 100%;
+    height: 100%;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    -unity-text-auto-size: best-fit 18px 30px;
+    color: rgb(255, 250, 240);
+    text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.7);
+}
+
+.quest-right-col {
+    width: 33%;
+    height: 100%;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.quest-reward-label {
+    width: 100%;
+    height: 36%;
+    margin: 0;
+    padding: 0;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    -unity-text-auto-size: best-fit 22px 36px;
+    color: rgb(255, 214, 72);
+}
+
+.quest-claim-btn {
+    width: 100%;
+    height: 56%;
+    margin: 0;
+    padding: 0 8px;
+    border-width: 0;
+    border-radius: 18px;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    -unity-text-auto-size: best-fit 20px 36px;
+    color: rgb(255, 250, 240);
+}
+
+.quest-claim-btn--ready {
+    background-color: rgb(72, 168, 86);
+}
+
+.quest-claim-btn--ready:active {
+    scale: 0.95 0.95;
+}
+
+.quest-claim-btn--locked {
+    background-color: rgb(124, 78, 44);
+    opacity: 0.7;
+}
+
+.quest-claim-btn--done {
+    background-color: rgb(88, 72, 60);
+    opacity: 0.65;
+}

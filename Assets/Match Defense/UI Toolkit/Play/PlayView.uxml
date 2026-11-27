@@ -1,24 +1,66 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/Match%20Defense/UI%20Toolkit/Play/PlayStyle.uss?fileID=7433441132597879392&amp;guid=f261465b707c8e6428f87558d5550bf3&amp;type=3#PlayStyle"/>
-    <SafeArea style="width: 100%; height: 100%;">
-        <ui:VisualElement name="bottom-rect" class="bottom-rect"/>
-        <MatchDefense.Match.MatchBoard name="match-board" cell-color-a="rgb(106, 69, 32)" cell-color-b="rgb(91, 53, 23)" item-shadow-color="rgba(0, 0, 0, 0.57)" cell-spacing="0" class="match-board"/>
-        <MatchDefense.Match.StoreBoard name="store-board" slider-sprite="project://database/Assets/Match%20Defense/Sprites/Play/Char_Frame_Filled.png?fileID=21300000&amp;guid=b4dcac8ca5bd2fc4a8c39e013b59fafb&amp;type=3#Char_Frame_Filled" fill-duration="0.5" dim-thumb-color="rgba(48, 22, 11, 0.84)"/>
-        <ui:Toggle name="play-btn" class="play-btn">
-            <ui:Image name="play-icon"/>
-        </ui:Toggle>
-        <ui:Label text="Auto" name="auto-txt" style="-unity-font-definition: resource(&quot;Hakgyoansim Dunggeunmiso TTF B&quot;); color: rgba(195, 119, 69, 0.58); margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; bottom: 8%; position: absolute; width: 10%; height: 3%; -unity-text-auto-size: best-fit 10px 500px; left: 27.5%;"/>
-        <ui:Toggle name="auto-toggle" class="side-btn auto-btn" style="margin-top: 3%; margin-right: 0; margin-left: 0; margin-bottom: 0; padding-top: 0%; padding-right: 0%; padding-bottom: 0%; padding-left: 0%;">
-            <ui:Image name="auto-check" source="project://database/Assets/Match%20Defense/Sprites/Play/side-btn-icons.png?fileID=962902659&amp;guid=814bc5ace19e0b64c9403bd4056a1e5e&amp;type=3#check-icon" tint-color="rgb(67, 39, 21)" scale-mode="StretchToFill" class="auto-check"/>
-        </ui:Toggle>
-        <ui:VisualElement name="turn-count-rect" class="turn-count side-btn">
-            <ui:Image source="project://database/Assets/Match%20Defense/Sprites/Play/side-btn-icons.png?fileID=6792089985959328510&amp;guid=814bc5ace19e0b64c9403bd4056a1e5e&amp;type=3#turn-icon" picking-mode="Ignore" tint-color="rgb(195, 119, 69)" name="turn-icon" style="aspect-ratio: 1; height: 50%; position: relative; top: auto; left: 15%;"/>
-            <ui:Label text="5" name="turn-count" picking-mode="Ignore" style="position: relative; width: 5%; height: 55%; -unity-text-align: middle-left; flex-grow: 0.5; letter-spacing: -5px; right: 12%;"/>
+    <SafeArea name="play-safe-area" picking-mode="Ignore" class="play-safe-area">
+        <ui:VisualElement name="top-hud" picking-mode="Ignore" class="top-hud">
+            <ui:VisualElement name="hp-group" picking-mode="Ignore" class="hp-group">
+                <ui:VisualElement name="hp-bar-bg" picking-mode="Ignore" class="hp-bar-bg">
+                    <ui:VisualElement name="hp-bar-fill" picking-mode="Ignore" class="hp-bar-fill"/>
+                    <!-- 비커 세로 눈금선 5개 -->
+                    <ui:VisualElement name="hp-tick-0" picking-mode="Ignore" class="hp-tick"/>
+                    <ui:VisualElement name="hp-tick-1" picking-mode="Ignore" class="hp-tick"/>
+                    <ui:VisualElement name="hp-tick-2" picking-mode="Ignore" class="hp-tick"/>
+                    <ui:VisualElement name="hp-tick-3" picking-mode="Ignore" class="hp-tick"/>
+                    <ui:VisualElement name="hp-tick-4" picking-mode="Ignore" class="hp-tick"/>
+                    <ui:Label text="HP 20 / 20" name="hp-text" picking-mode="Ignore" class="hp-text"/>
+                </ui:VisualElement>
+                <!-- 각 비커 눈금 아래에 배치되는 3D 클레이 별 5개 -->
+                <ui:VisualElement name="hp-stars-row" picking-mode="Ignore" class="hp-stars-row">
+                    <ui:VisualElement name="hp-star-0" picking-mode="Ignore" class="hp-star"/>
+                    <ui:VisualElement name="hp-star-1" picking-mode="Ignore" class="hp-star"/>
+                    <ui:VisualElement name="hp-star-2" picking-mode="Ignore" class="hp-star"/>
+                    <ui:VisualElement name="hp-star-3" picking-mode="Ignore" class="hp-star"/>
+                    <ui:VisualElement name="hp-star-4" picking-mode="Ignore" class="hp-star"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="hp-heart" picking-mode="Ignore" class="hp-heart"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="top-right-group" picking-mode="Ignore" class="top-right-group">
+                <ui:VisualElement name="wave-box" picking-mode="Ignore" class="wave-box">
+                    <ui:Label text="WAVE 1 / 40" name="wave-text" picking-mode="Ignore" class="wave-text"/>
+                </ui:VisualElement>
+                <ui:Button name="pause-btn" class="pause-btn">
+                    <ui:VisualElement picking-mode="Ignore" class="pause-bar"/>
+                    <ui:VisualElement picking-mode="Ignore" class="pause-bar"/>
+                </ui:Button>
+            </ui:VisualElement>
         </ui:VisualElement>
-        <ui:Toggle name="double-btn" class="double-btn side-btn hide">
-            <ui:Label text="X1" name="double-off-txt" picking-mode="Ignore" class="double-off-txt"/>
-            <ui:Label text="X2" name="double-on-txt" picking-mode="Ignore" class="double-on-txt"/>
-        </ui:Toggle>
-        <ui:VisualElement name="items" class="side-btn" style="height: 10%; width: 40%; right: 0%;"/>
+        <ui:VisualElement name="bottom-panel" class="bottom-panel">
+            <ui:VisualElement name="bottom-rect" picking-mode="Ignore" class="bottom-rect"/>
+            <MatchDefense.Match.StoreBoard name="store-board" slider-sprite="project://database/Assets/Match%20Defense/Sprites/Play/Char_Frame_Filled.png?fileID=21300000&amp;guid=b4dcac8ca5bd2fc4a8c39e013b59fafb&amp;type=3#Char_Frame_Filled" fill-duration="0.5" dim-thumb-color="rgba(48, 22, 11, 0.84)" class="store-board"/>
+            <ui:VisualElement name="board-slot" class="board-slot">
+                <MatchDefense.Match.MatchBoard name="match-board" cell-color-a="rgb(106, 69, 32)" cell-color-b="rgb(91, 53, 23)" item-shadow-color="rgba(0, 0, 0, 0.57)" cell-spacing="0" class="match-board"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="bottom-controls" class="bottom-controls">
+                <ui:VisualElement name="turn-count-rect" class="turn-count side-btn">
+                    <ui:Image name="turn-icon" source="project://database/Assets/Match%20Defense/Sprites/Play/clay-icons.png?fileID=-7375488341002065405&amp;guid=3f4563c25d00ce842a6b7b5334d90d98&amp;type=3#turn-icon" picking-mode="Ignore" tint-color="rgb(195, 119, 69)" scale-mode="ScaleToFit" class="turn-icon"/>
+                    <ui:Label text="5" name="turn-count" picking-mode="Ignore" class="turn-count-label"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="auto-group" class="auto-group">
+                    <ui:Label text="Auto" name="auto-txt" class="auto-txt"/>
+                    <ui:Toggle name="auto-toggle" class="side-btn auto-btn">
+                        <ui:Image name="auto-check" source="project://database/Assets/Match%20Defense/Sprites/Play/clay-icons.png?fileID=1026215100&amp;guid=3f4563c25d00ce842a6b7b5334d90d98&amp;type=3#check-icon" tint-color="rgb(67, 39, 21)" scale-mode="StretchToFill" class="auto-check"/>
+                    </ui:Toggle>
+                </ui:VisualElement>
+                <ui:VisualElement name="center-btn-slot" class="center-btn-slot">
+                    <ui:Toggle name="play-btn" class="play-btn">
+                        <ui:Image name="play-icon"/>
+                    </ui:Toggle>
+                    <ui:Toggle name="double-btn" class="double-btn side-btn hide">
+                        <ui:Label text="X1" name="double-off-txt" picking-mode="Ignore" class="double-off-txt"/>
+                        <ui:Label text="X2" name="double-on-txt" picking-mode="Ignore" class="double-on-txt"/>
+                    </ui:Toggle>
+                </ui:VisualElement>
+                <ui:VisualElement name="items" class="side-btn items-slot"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
     </SafeArea>
 </ui:UXML>

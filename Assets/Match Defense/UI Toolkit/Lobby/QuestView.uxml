@@ -1,5 +1,11 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:VisualElement name="store-panel" style="flex-grow: 1; background-color: rgb(179, 217, 255); position: absolute; flex-shrink: 0; height: 100%; width: 100%;">
-        <ui:Label text="QUEST" name="store-text" style="width: 100%; height: 100%; -unity-font-style: bold; -unity-text-align: middle-center; font-size: 50px;"/>
+    <Style src="QuestStyle.uss" />
+    <ui:VisualElement name="quest-panel" class="quest-page-root">
+        <ui:VisualElement class="quest-container-card">
+            <LocalizedLabel name="quest-title" localization-key="quest_page_title" text="QUESTS" font-size="0" class="quest-header-title" />
+            <ui:ScrollView class="quest-scroll">
+                <ui:VisualElement name="quest-list-container" class="quest-list-container" />
+            </ui:ScrollView>
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

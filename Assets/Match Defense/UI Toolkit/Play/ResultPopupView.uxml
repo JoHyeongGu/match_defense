@@ -1,0 +1,29 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="ResultPopupStyle.uss" />
+    <ui:VisualElement name="result-overlay" class="result-overlay hide">
+        <!-- 40Wave 달성 시 무한모드 선택 패널 -->
+        <ui:VisualElement name="endless-choice-panel" class="result-window">
+            <ui:Label text="STAGE CLEAR!" name="endless-title" class="result-title" />
+            <ui:Label text="You cleared Wave 40! Continue in Endless Mode?" name="endless-info-label" class="result-desc" />
+            <ui:VisualElement class="result-btn-col">
+                <ui:Button text="ENDLESS MODE" name="endless-continue-btn" class="result-btn result-btn--primary" />
+                <ui:Button text="STOP &amp; CLAIM" name="endless-stop-btn" class="result-btn result-btn--accent" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- 최종 결과 (승리 보상 정산 / 패배) 패널 -->
+        <ui:VisualElement name="final-result-panel" class="result-window">
+            <ui:Label text="GAME OVER" name="result-title" class="result-title" />
+            <ui:Label text="WAVE 1 / 40" name="result-wave-label" class="result-wave-label" />
+            <ui:VisualElement name="result-reward-box" class="result-reward-box">
+                <ui:Label text="Clear Reward: +100 C" name="result-clear-coin" class="result-reward-line" />
+                <ui:Label text="Remaining Turns: +25 C" name="result-turn-bonus" class="result-reward-line" />
+                <ui:Label text="+125 C" name="result-total-coin" class="result-total-coin" />
+            </ui:VisualElement>
+            <ui:VisualElement class="result-btn-row">
+                <ui:Button text="RETRY" name="result-retry-btn" class="result-btn result-btn--half result-btn--primary" />
+                <ui:Button text="LOBBY" name="result-lobby-btn" class="result-btn result-btn--half result-btn--secondary" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

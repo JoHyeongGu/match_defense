@@ -1,0 +1,22 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="TutorialStyle.uss" />
+    <ui:VisualElement name="tutorial-overlay" picking-mode="Ignore" class="tutorial-overlay hide">
+        <!-- 4분할 딤 영역: 타겟 영역만 비워 실제 클릭/드래그 입력이 통과되도록 구성 -->
+        <ui:VisualElement name="tut-dim-top" class="tut-dim" />
+        <ui:VisualElement name="tut-dim-bottom" class="tut-dim" />
+        <ui:VisualElement name="tut-dim-left" class="tut-dim" />
+        <ui:VisualElement name="tut-dim-right" class="tut-dim" />
+
+        <!-- 타겟 강조 프레임 -->
+        <ui:VisualElement name="tut-spotlight-frame" picking-mode="Ignore" class="tut-spotlight-frame" />
+
+        <!-- 친절한 가이드 말풍선 -->
+        <ui:VisualElement name="tut-dialog-box" class="tut-dialog-box tut-dialog--top">
+            <ui:Label text="Tutorial message..." name="tut-dialog-text" picking-mode="Ignore" class="tut-dialog-text" />
+            <ui:Label text="Tap to continue" name="tut-tap-hint" picking-mode="Ignore" class="tut-tap-hint" />
+        </ui:VisualElement>
+
+        <!-- 우측 상단 Skip 버튼 -->
+        <ui:Button text="SKIP" name="tut-skip-btn" class="tut-skip-btn" />
+    </ui:VisualElement>
+</ui:UXML>

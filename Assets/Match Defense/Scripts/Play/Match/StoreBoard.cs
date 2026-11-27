@@ -21,11 +21,15 @@ namespace MatchDefense.Match
 
         private const string BoardClass = "store-board";
         private const string FrameClass = "store-frame";
+        private const string FrameLockedClass = "store-frame--locked";
         private const string ThumbClass = "store-thumb";
         private const string SliderClass = "store-slider";
         private const string CountClass = "store-count";
+        private const string LockOverlayClass = "store-lock-overlay";
+        private const string LockIconClass = "store-lock-icon";
 
         private Sprite sliderSprite;
+        private Sprite lockSprite;
         private SliderFillMode fillMode = SliderFillMode.RadialU;
         private float previewFill = 0.5f;
         private float slotSpacing = 0.04f;
@@ -39,6 +43,13 @@ namespace MatchDefense.Match
         {
             get => sliderSprite;
             set { sliderSprite = value; ApplySliderSettings(); }
+        }
+
+        [UxmlAttribute]
+        public Sprite LockSprite
+        {
+            get => lockSprite;
+            set { lockSprite = value; ApplyLockSprite(); }
         }
 
         [UxmlAttribute]
@@ -101,12 +112,13 @@ namespace MatchDefense.Match
 
             for (int i = 0; i < MaxSlots; i++)
             {
-                var slot = new StoreSlotElement();
+                var slot = new StoreSlotElement(i);
                 slots[i] = slot;
                 Add(slot);
             }
 
             ApplyDimThumbColor();
+            ApplyLockSprite();
             ApplyPreviewFill();
             RegisterCallback<GeometryChangedEvent>(_ => UpdateBoardLayout());
             RegisterCallback<DetachFromPanelEvent>(_ => CleanupAllSlots());
@@ -115,7 +127,7 @@ namespace MatchDefense.Match
         public void Initialize(
             MonoBehaviour runner,
             MatchUnitData[] unitDatas,
-            Action<GameObject> beginDragCallback,
+            Action<MatchUnitData> beginDragCallback,
             Action<Vector2> dragCallback,
             Func<bool, bool> endDragCallback)
         {
@@ -126,11 +138,12 @@ namespace MatchDefense.Match
             {
                 slots[i].SetSliderVisual(sliderSprite, fillMode);
                 slots[i].SetDimThumbColor(dimThumbColor);
+                slots[i].SetLockSprite(lockSprite);
 
                 if (unitDatas != null && i < unitDatas.Length && unitDatas[i] != null)
                     slots[i].Bind(runner, unitDatas[i], beginDragCallback, dragCallback, endDragCallback);
                 else
-                    slots[i].ClearBinding();
+                    slots[i].SetLockedEmpty();
             }
 
             UpdateBoardLayout();
@@ -139,8 +152,23 @@ namespace MatchDefense.Match
         public void AddCharge(int unitIndex, int matchCount)
         {
             if (coroutineRunner == null || unitIndex < 0 || unitIndex >= MaxSlots) return;
-            if (!slots[unitIndex].IsBound) return;
+            if (!slots[unitIndex].IsBound || !slots[unitIndex].IsUnlocked) return;
             slots[unitIndex].EnqueueCharge(matchCount, fillDuration);
+        }
+
+        public void EnsureAtLeastOneUnit(int slotIndex)
+        {
+            if (slotIndex < 0 || slotIndex >= MaxSlots) return;
+            if (!slots[slotIndex].IsBound || !slots[slotIndex].IsUnlocked) return;
+            if (slots[slotIndex].AvailableUnits <= 0)
+                slots[slotIndex].GrantAvailableUnitsImmediate(1);
+        }
+
+        public void GrantTutorialUnit(int slotIndex, int count = 1)
+        {
+            if (slotIndex < 0 || slotIndex >= MaxSlots) return;
+            if (!slots[slotIndex].IsBound || !slots[slotIndex].IsUnlocked) return;
+            slots[slotIndex].GrantAvailableUnitsImmediate(count);
         }
 
         public void ResetAllSlots()
@@ -169,6 +197,12 @@ namespace MatchDefense.Match
                 slots[i]?.SetSliderVisual(sliderSprite, fillMode);
         }
 
+        private void ApplyLockSprite()
+        {
+            for (int i = 0; i < MaxSlots; i++)
+                slots[i]?.SetLockSprite(lockSprite);
+        }
+
         private void ApplyDimThumbColor()
         {
             for (int i = 0; i < MaxSlots; i++)
@@ -192,10 +226,12 @@ namespace MatchDefense.Match
         private class StoreSlotElement : VisualElement
         {
             public bool IsBound { get; private set; }
+            public bool IsUnlocked { get; private set; }
+            public int AvailableUnits => availableUnits;
 
             private MonoBehaviour runner;
             private MatchUnitData data;
-            private Action<GameObject> onBeginDrag;
+            private Action<MatchUnitData> onBeginDrag;
             private Action<Vector2> onDrag;
             private Func<bool, bool> onEndDrag;
 
@@ -205,6 +241,8 @@ namespace MatchDefense.Match
             private readonly VisualElement brightThumb;
             private readonly FilledSpriteElement sliderElement;
             private readonly Label countLabel;
+            private readonly VisualElement lockOverlay;
+            private readonly Label lockFallbackLabel;
 
             private readonly Queue<int> pendingMatches = new Queue<int>();
             private Coroutine chargeCoroutine;
@@ -221,8 +259,9 @@ namespace MatchDefense.Match
             private Sequence bounceSeq;
             private Sequence sliderBounceSeq;
 
-            public StoreSlotElement()
+            public StoreSlotElement(int slotIndex)
             {
+                name = $"store-slot-{slotIndex}";
                 AddToClassList(FrameClass);
                 style.flexGrow = 0;
                 style.flexShrink = 0;
@@ -265,9 +304,20 @@ namespace MatchDefense.Match
                 countLabel = new Label("0") { pickingMode = PickingMode.Ignore };
                 countLabel.AddToClassList(CountClass);
 
+                lockOverlay = CreateOverlayElement();
+                lockOverlay.AddToClassList(LockOverlayClass);
+                lockOverlay.style.justifyContent = Justify.Center;
+                lockOverlay.style.alignItems = Align.Center;
+                lockOverlay.style.display = DisplayStyle.None;
+
+                lockFallbackLabel = new Label("LOCK") { pickingMode = PickingMode.Ignore };
+                lockFallbackLabel.AddToClassList(LockIconClass);
+                lockOverlay.Add(lockFallbackLabel);
+
                 Add(thumbRoot);
                 Add(sliderElement);
                 Add(countLabel);
+                Add(lockOverlay);
 
                 RegisterCallback<PointerDownEvent>(OnPointerDown);
                 RegisterCallback<PointerMoveEvent>(OnPointerMove);
@@ -280,11 +330,29 @@ namespace MatchDefense.Match
                 style.width = size;
                 style.height = size;
                 countLabel.style.fontSize = fontSize;
+                lockFallbackLabel.style.fontSize = Mathf.Max(10f, fontSize * 0.85f);
             }
 
             public void SetSliderVisual(Sprite sprite, SliderFillMode mode)
             {
                 sliderElement.SetConfig(sprite, mode);
+            }
+
+            public void SetLockSprite(Sprite sprite)
+            {
+                if (sprite != null)
+                {
+                    lockFallbackLabel.text = string.Empty;
+                    lockFallbackLabel.style.backgroundImage = new StyleBackground(sprite);
+                    ApplyContainSprite(lockFallbackLabel);
+                    lockFallbackLabel.style.width = Length.Percent(46f);
+                    lockFallbackLabel.style.height = Length.Percent(46f);
+                }
+                else
+                {
+                    lockFallbackLabel.style.backgroundImage = StyleKeyword.None;
+                    lockFallbackLabel.text = "LOCK";
+                }
             }
 
             public void SetDimThumbColor(Color color)
@@ -301,7 +369,7 @@ namespace MatchDefense.Match
             public void Bind(
                 MonoBehaviour coroutineRunner,
                 MatchUnitData unitData,
-                Action<GameObject> beginDrag,
+                Action<MatchUnitData> beginDrag,
                 Action<Vector2> drag,
                 Func<bool, bool> endDrag)
             {
@@ -311,6 +379,7 @@ namespace MatchDefense.Match
                 onDrag = drag;
                 onEndDrag = endDrag;
                 IsBound = true;
+                IsUnlocked = unitData.isUnlocked;
 
                 Sprite thumbSprite = data.thumbnailSprite != null
                     ? data.thumbnailSprite
@@ -321,21 +390,43 @@ namespace MatchDefense.Match
                 brightThumb.style.backgroundImage = thumbBg;
                 sliderElement.FillColor = data.sliderColor;
 
-                SetContentVisible(true);
+                ApplyLockState();
                 ResetState();
             }
 
-            public void ClearBinding()
+            public void SetLockedEmpty()
             {
                 StopAndKill();
                 data = null;
                 IsBound = false;
-                SetContentVisible(false);
+                IsUnlocked = false;
+                dimThumb.style.backgroundImage = StyleKeyword.None;
+                brightThumb.style.backgroundImage = StyleKeyword.None;
+                ApplyLockState();
+            }
+
+            private void ApplyLockState()
+            {
+                EnableInClassList(FrameLockedClass, !IsUnlocked);
+                lockOverlay.style.display = IsUnlocked ? DisplayStyle.None : DisplayStyle.Flex;
+
+                thumbRoot.style.display = IsBound ? DisplayStyle.Flex : DisplayStyle.None;
+                sliderElement.style.display = IsUnlocked ? DisplayStyle.Flex : DisplayStyle.None;
+                countLabel.style.display = IsUnlocked ? DisplayStyle.Flex : DisplayStyle.None;
+            }
+
+            public void GrantAvailableUnitsImmediate(int count)
+            {
+                if (!IsBound || !IsUnlocked || count <= 0) return;
+                availableUnits += count;
+                SetThumbFillImmediate(1f);
+                UpdateCountUI();
+                PlayBounce(1);
             }
 
             public void EnqueueCharge(int matchCount, float duration)
             {
-                if (runner == null || data == null || matchCount <= 0) return;
+                if (runner == null || data == null || !IsUnlocked || matchCount <= 0) return;
                 pendingMatches.Enqueue(matchCount);
                 if (chargeCoroutine == null)
                     chargeCoroutine = runner.StartCoroutine(ProcessChargeQueue(duration));
@@ -428,7 +519,7 @@ namespace MatchDefense.Match
 
             private void OnPointerDown(PointerDownEvent evt)
             {
-                if (!IsBound || availableUnits <= 0 || isDragging || data.unitPrefab == null) return;
+                if (!IsBound || !IsUnlocked || availableUnits <= 0 || isDragging || data.unitPrefab == null) return;
 
                 isDragging = true;
                 activePointerId = evt.pointerId;
@@ -436,7 +527,7 @@ namespace MatchDefense.Match
                 style.opacity = 0.65f;
                 evt.StopPropagation();
 
-                onBeginDrag?.Invoke(data.unitPrefab);
+                onBeginDrag?.Invoke(data);
             }
 
             private void OnPointerMove(PointerMoveEvent evt)
@@ -486,14 +577,6 @@ namespace MatchDefense.Match
                 return new Vector2(screenX, screenY);
             }
 
-            private void SetContentVisible(bool visible)
-            {
-                var display = visible ? DisplayStyle.Flex : DisplayStyle.None;
-                thumbRoot.style.display = display;
-                sliderElement.style.display = display;
-                countLabel.style.display = display;
-            }
-
             private void UpdateCountUI()
             {
                 countLabel.text = availableUnits.ToString();
@@ -503,7 +586,7 @@ namespace MatchDefense.Match
             {
                 bounceSeq?.Kill();
                 thumbRoot.style.scale = new Scale(Vector3.one);
-                bounceSeq = DOTween.Sequence().SetUpdate(true); ;
+                bounceSeq = DOTween.Sequence().SetUpdate(true);
 
                 for (int i = 0; i < count; i++)
                 {

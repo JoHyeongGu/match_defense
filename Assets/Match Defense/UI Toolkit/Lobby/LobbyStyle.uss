@@ -14,6 +14,7 @@
     position: absolute;
     align-self: center;
     align-content: center;
+    transition-property: bottom, scale;
     transition-timing-function: ease-in-out-sine;
     transition-duration: 0.2s;
     background-color: rgba(0, 0, 0, 0);
@@ -217,4 +218,117 @@
     border-right-color: rgb(108, 60, 31);
     border-top-color: rgb(108, 60, 31);
     border-bottom-color: rgb(108, 60, 31);
+}
+
+.lobby-top-bar {
+    position: absolute;
+    top: 1.6%;
+    left: 3.5%;
+    right: 3.5%;
+    height: 5%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.clay-coin-pill {
+    height: 120%;
+    min-width: 28%;
+    padding: 10px 26px 10px 14px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Rects.png?fileID=-981860313&guid=d8cd81cc99e6902459f2c392b35ef169&type=3#Clay_Rects_4");
+    -unity-background-image-tint-color: rgb(124, 68, 32);
+    -unity-slice-left: 10;
+    -unity-slice-top: 10;
+    -unity-slice-right: 10;
+    -unity-slice-bottom: 10;
+    border-radius: 26px;
+    filter: drop-shadow(0 4 6 rgba(0, 0, 0, 0.4));
+    padding-left: 3%;
+    padding-right: 4%;
+}
+
+.clay-coin-badge {
+    height: 76%;
+    width: auto;
+    aspect-ratio: 1;
+    margin-right: 16px;
+    background-color: rgb(255, 192, 42);
+    border-radius: 100%;
+    border-width: 4px;
+    border-color: rgb(214, 134, 24);
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.clay-coin-badge-txt {
+    margin: 0;
+    padding: 0;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    font-size: 32px;
+    color: rgb(146, 76, 12);
+}
+
+.clay-coin-value {
+    flex-grow: 1;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-right;
+    font-size: 40px;
+    color: rgb(255, 244, 214);
+    text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.55);
+}
+
+.clay-setting-btn {
+    height: 120%;
+    min-width: 22%;
+    margin: 0;
+    padding: 10px 22px;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+    background-image: url("project://database/Assets/Match%20Defense/Sprites/UI/Clay_Rects.png?fileID=-1111875157&guid=d8cd81cc99e6902459f2c392b35ef169&type=3#Clay_Rects_1");
+    -unity-background-image-tint-color: rgb(156, 90, 44);
+    -unity-slice-left: 8;
+    -unity-slice-top: 8;
+    -unity-slice-right: 8;
+    -unity-slice-bottom: 8;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    font-size: 36px;
+    color: rgb(255, 244, 224);
+    text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.5);
+    filter: drop-shadow(0 4 6 rgba(0, 0, 0, 0.4));
+    transition-property: scale;
+    transition-duration: 0.1s;
+    padding-top: 0%;
+    padding-bottom: 0%;
+    padding-right: 2%;
+    padding-left: 2%;
+}
+
+.clay-setting-btn:active {
+    -unity-background-image-tint-color: rgb(126, 68, 30);
+    scale: 0.94 0.94;
+}
+
+.clay-setting-btn .unity-button__image {
+    height: 62%;
+    width: auto;
+    aspect-ratio: 1;
+    margin-right: 10px;
+    -unity-background-image-tint-color: rgb(255, 232, 186);
+}
+
+.play-btn--locked {
+    opacity: 0.4;
+    -unity-background-image-tint-color: rgb(140, 120, 110);
 }

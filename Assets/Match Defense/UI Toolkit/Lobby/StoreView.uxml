@@ -1,5 +1,37 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:VisualElement name="store-panel" style="flex-grow: 1; background-color: rgb(255, 179, 255); position: absolute; flex-shrink: 0; height: 100%; width: 100%;">
-        <ui:Label text="STORE" name="store-text" style="width: 100%; height: 100%; -unity-font-style: bold; -unity-text-align: middle-center; font-size: 50px;"/>
+    <Style src="StoreStyle.uss" />
+    <ui:VisualElement name="store-panel" class="store-page-root">
+        <ui:VisualElement class="store-content-card">
+            <LocalizedLabel name="store-title" localization-key="store_gacha_title" text="UNIT SUMMON" font-size="0" class="store-header-title" />
+            <ui:VisualElement name="gacha-banner" class="gacha-banner">
+                <ui:Label text="?" class="gacha-mystery-mark" />
+                <ui:Label text="Draw a random unit!" name="store-status-label" class="store-status-label" />
+            </ui:VisualElement>
+            <ui:Button name="gacha-draw-btn" class="gacha-draw-btn">
+                <LocalizedLabel localization-key="store_draw_btn" text="SUMMON x1" font-size="0" picking-mode="Ignore" class="gacha-draw-btn-title" />
+                <ui:Label text="100 C" name="gacha-cost-label" picking-mode="Ignore" class="gacha-cost-label" />
+            </ui:Button>
+        </ui:VisualElement>
+
+        <!-- 가챠 두구두구 연출 & 결과 오버레이 -->
+        <ui:VisualElement name="gacha-result-overlay" class="gacha-result-overlay hide">
+            <!-- Phase 1: 두구두구 미스터리 박스 -->
+            <ui:VisualElement name="gacha-anticipation-box" class="gacha-anticipation-box" picking-mode="Ignore">
+                <ui:Label text="?" class="gacha-anticipation-mark" picking-mode="Ignore" />
+            </ui:VisualElement>
+
+            <!-- Phase 2: 결과 카드 & 광채 -->
+            <ui:VisualElement name="gacha-result-glow" class="gacha-result-glow" picking-mode="Ignore" />
+            <ui:VisualElement name="gacha-result-card" class="gacha-result-card">
+                <ui:Label text="NEW UNIT!" name="gacha-result-badge" class="gacha-result-badge badge--new" />
+                <ui:VisualElement name="gacha-result-icon" class="gacha-result-icon" />
+                <ui:Label text="Baguette" name="gacha-result-name" class="gacha-result-name" />
+                <ui:Label text="Check it in your Inventory!" name="gacha-result-stack" class="gacha-result-stack" />
+                <ui:Button text="OK" name="gacha-result-close-btn" class="gacha-result-close-btn" />
+            </ui:VisualElement>
+
+            <!-- 반짝 플래시 레이어 -->
+            <ui:VisualElement name="gacha-flash" class="gacha-flash" picking-mode="Ignore" />
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

@@ -1,0 +1,246 @@
+.store-page-root {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgb(58, 38, 29);
+}
+
+.store-content-card {
+    position: absolute;
+    top: 8%;
+    bottom: 16.5%;
+    left: 4.5%;
+    right: 4.5%;
+    padding: 3.5% 4.5%;
+    border-radius: 36px;
+    background-color: rgb(118, 68, 34);
+    border-width: 6px;
+    border-color: rgb(214, 152, 86);
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.store-header-title {
+    width: 100%;
+    height: 9%;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    -unity-text-auto-size: best-fit 28px 68px;
+    color: rgb(255, 232, 168);
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+}
+
+.gacha-banner {
+    width: 96%;
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-top: 2%;
+    margin-bottom: 3%;
+    border-radius: 28px;
+    background-color: rgb(76, 42, 18);
+    border-width: 5px;
+    border-color: rgb(186, 128, 66);
+    justify-content: center;
+    align-items: center;
+    padding: 4%;
+}
+
+.gacha-mystery-mark {
+    width: 100%;
+    height: 45%;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    -unity-text-auto-size: best-fit 80px 210px;
+    color: rgb(255, 204, 68);
+    text-shadow: 0 6px 16px rgba(255, 174, 0, 0.55);
+}
+
+.store-status-label {
+    width: 94%;
+    height: 24%;
+    margin-top: 2%;
+    white-space: normal;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    -unity-text-auto-size: best-fit 24px 46px;
+    color: rgb(246, 222, 192);
+}
+
+.gacha-draw-btn {
+    width: 92%;
+    height: 17%;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 1.5% 4%;
+    border-width: 5px;
+    border-color: rgb(255, 212, 118);
+    border-radius: 28px;
+    background-color: rgb(224, 138, 42);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition-property: scale;
+    transition-duration: 0.1s;
+}
+
+.gacha-draw-btn:active {
+    scale: 0.95 0.95;
+}
+
+.gacha-draw-btn:disabled {
+    opacity: 0.5;
+}
+
+.gacha-draw-btn-title {
+    width: 100%;
+    height: 52%;
+    margin: 0;
+    padding: 0;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    -unity-text-auto-size: best-fit 26px 52px;
+    color: rgb(255, 250, 240);
+}
+
+.gacha-cost-label {
+    width: 100%;
+    height: 44%;
+    margin: 0;
+    padding: 0;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    -unity-text-auto-size: best-fit 22px 42px;
+    color: rgb(255, 244, 152);
+}
+
+.gacha-result-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgba(14, 7, 3, 0.88);
+    justify-content: center;
+    align-items: center;
+}
+
+.gacha-result-overlay.hide {
+    display: none;
+}
+
+.gacha-result-glow {
+    position: absolute;
+    width: 680px;
+    height: 680px;
+    border-radius: 340px;
+    background-color: rgba(255, 206, 68, 0.22);
+    border-width: 10px;
+    border-color: rgba(255, 220, 110, 0.55);
+}
+
+.gacha-result-card {
+    width: 84%;
+    height: 58%;
+    padding: 5% 5%;
+    border-radius: 36px;
+    background-color: rgb(114, 62, 28);
+    border-width: 7px;
+    border-color: rgb(255, 212, 92);
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.gacha-result-badge {
+    width: 76%;
+    height: 11%;
+    border-radius: 20px;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    -unity-text-auto-size: best-fit 24px 48px;
+    color: rgb(255, 255, 255);
+}
+
+.badge--new {
+    background-color: rgb(228, 78, 56);
+}
+
+.badge--stack {
+    background-color: rgb(62, 148, 214);
+}
+
+.gacha-result-icon {
+    width: 48%;
+    height: 36%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.gacha-result-name {
+    width: 100%;
+    height: 11%;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    -unity-text-auto-size: best-fit 30px 62px;
+    color: rgb(255, 245, 232);
+}
+
+.gacha-result-stack {
+    width: 100%;
+    height: 12%;
+    white-space: normal;
+    -unity-text-align: middle-center;
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF R");
+    -unity-text-auto-size: best-fit 22px 42px;
+    color: rgb(246, 214, 174);
+}
+
+.gacha-result-close-btn {
+    width: 76%;
+    height: 14%;
+    border-width: 0;
+    border-radius: 24px;
+    background-color: rgb(212, 132, 46);
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    -unity-text-auto-size: best-fit 26px 50px;
+    color: rgb(255, 250, 240);
+}
+
+.gacha-anticipation-box {
+    width: 340px;
+    height: 340px;
+    border-radius: 56px;
+    background-color: rgb(156, 86, 36);
+    border-width: 10px;
+    border-color: rgb(255, 212, 82);
+    justify-content: center;
+    align-items: center;
+    transform-origin: center;
+    filter: drop-shadow(0 0 28 rgba(255, 198, 56, 0.75));
+}
+
+.gacha-anticipation-mark {
+    -unity-font-definition: resource("Hakgyoansim Dunggeunmiso TTF B");
+    -unity-text-align: middle-center;
+    font-size: 180px;
+    color: rgb(255, 224, 96);
+    text-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+}
+
+.gacha-flash {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgb(255, 248, 220);
+    display: none;
+}

@@ -15,7 +15,7 @@ namespace MatchDefense.Lobby
     {
         public Vector3 stageObjectPosition;
         public Vector3 stageObjectEulerAngles;
-        public string loopAnimationStateName;
+        public int loopState = 0;
         public string enterAnimationTrigger;
         public float enterAnimationDuration = 3.0f;
     }
@@ -68,11 +68,12 @@ namespace MatchDefense.Lobby
         private bool _isStageAreaDragging = false;
         private int _stageAreaPointerId = -1;
         private Coroutine _playCoroutine;
-        private string _currentLoopStateName = string.Empty;
 
         private Transform _activeStageTransform;
         private Animator _activeStageAnimator;
         private readonly Dictionary<int, GameObject> _spawnedStageObjects = new Dictionary<int, GameObject>();
+        private static readonly int LoopStateHash = Animator.StringToHash("LoopState");
+        private int _currentLoopState = -1;
 
         private SettingsPopupController _settingsPopup;
         private LobbyStoreController _storeController;
@@ -242,7 +243,7 @@ namespace MatchDefense.Lobby
             if (_stageTitleLabel != null && mainCfg != null && !string.IsNullOrEmpty(mainCfg.titleLocalizationKey))
                 _stageTitleLabel.LocalizationKey = mainCfg.titleLocalizationKey;
 
-            _currentLoopStateName = string.Empty;
+            _currentLoopState = -1;
         }
 
         public void SwitchMainStageWorld(int targetMainIndex, int targetSubStage = 0)
@@ -294,7 +295,7 @@ namespace MatchDefense.Lobby
 
             _selectedMainStageIndex = toMain;
             _selectedSubStageIndex = targetSubStage;
-            _currentLoopStateName = string.Empty;
+            _currentLoopState = -1;
             BindActiveStageObject(toObj);
             ProgramManager.Instance?.SelectStage(_selectedMainStageIndex, _selectedSubStageIndex);
 
@@ -598,6 +599,7 @@ namespace MatchDefense.Lobby
             int nearestSub = Mathf.Max(0, Mathf.RoundToInt(progress));
             if (nearestSub != _lastPreviewSubStageIndex)
             {
+                SetStageLoopState(nearestSub + 1);
                 _lastPreviewSubStageIndex = nearestSub;
                 UpdatePlayButtonImmediate(nearestSub);
             }
@@ -637,23 +639,19 @@ namespace MatchDefense.Lobby
             ProgramManager.Instance?.SelectStage(_selectedMainStageIndex, _selectedSubStageIndex);
 
             LobbySubStageVisual subVisual = GetSubVisual(_selectedMainStageIndex, _selectedSubStageIndex);
-            if (subVisual != null)
-                PlayStageLoopAnimation(subVisual.loopAnimationStateName);
+            int targetLoopState = (subVisual != null && subVisual.loopState > 0)
+                ? subVisual.loopState
+                : (_selectedSubStageIndex + 1);
+            SetStageLoopState(targetLoopState);
 
             UpdatePlayButtonImmediate(_selectedSubStageIndex);
         }
 
-        private void PlayStageLoopAnimation(string stateName)
+        private void SetStageLoopState(int stateValue)
         {
-            if (_activeStageAnimator == null || string.IsNullOrEmpty(stateName)) return;
-            if (_currentLoopStateName == stateName) return;
-
-            int stateHash = Animator.StringToHash(stateName);
-            if (_activeStageAnimator.HasState(0, stateHash))
-            {
-                _currentLoopStateName = stateName;
-                _activeStageAnimator.CrossFadeInFixedTime(stateHash, loopCrossFadeDuration, 0);
-            }
+            if (_activeStageAnimator == null || _currentLoopState == stateValue) return;
+            _currentLoopState = stateValue;
+            _activeStageAnimator.SetInteger(LoopStateHash, stateValue);
         }
         #endregion
 
